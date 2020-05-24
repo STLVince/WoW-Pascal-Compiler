@@ -21,6 +21,7 @@ namespace ast
     {
     public:
         TypeName type = TypeName::UNKNOWN;
+
         TypeDecl(){};
         TypeDecl(TypeName type) : type(type) {}
         ~TypeDecl(){};
@@ -40,6 +41,7 @@ namespace ast
     {
     public:
         TypeName type = TypeName::UNKNOWN;
+
         virtual TypeName getConstType() = 0;
         ConstType(){};
         ~ConstType(){};
@@ -49,6 +51,7 @@ namespace ast
     {
     public:
         int val;
+
         IntegerType(int val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::INTEGER; }
         //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
@@ -58,6 +61,7 @@ namespace ast
     {
     public:
         double val;
+
         RealType(double val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::REAL; }
         //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
@@ -67,6 +71,7 @@ namespace ast
     {
     public:
         bool val;
+
         BooleanType(bool val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::BOOLEAN; }
         //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
@@ -76,6 +81,7 @@ namespace ast
     {
     public:
         std::string val;
+
         StringType(const char *val) : val(val) {}
         StringType(const std::string val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::STRING; }

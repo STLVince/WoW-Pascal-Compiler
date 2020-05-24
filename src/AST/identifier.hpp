@@ -9,6 +9,7 @@ namespace ast
     {
     public:
         std::string name;
+        
         Identifier(const std::string &name) : name(name) {}
         //Identifier(const char* ptr) : name(*(new std::string(ptr))) {}
         //virtual llvm::Value *code_gen(CodeGenContext &context);
