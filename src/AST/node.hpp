@@ -9,6 +9,7 @@
 #include <memory>
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Instruction.h"
+#include "codegen/CodeGenContext.h"
 
 namespace ast
 {
@@ -17,7 +18,7 @@ namespace ast
     public:
         virtual ~Node(){};
         //virtual std::vector<std::shared_ptr<Node>> getChildren() { return *(new std::vector<std::shared_ptr<Node>>()); }
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 
     class Expression : public Node
@@ -25,7 +26,7 @@ namespace ast
     public:
         Expression(){};
         ~Expression(){};
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 
     class Statement : public Node
@@ -33,7 +34,7 @@ namespace ast
     public:
         Statement(){};
         ~Statement(){};
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 } // namespace ast
 

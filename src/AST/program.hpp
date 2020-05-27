@@ -43,7 +43,7 @@ namespace ast
                 list.push_back((std::shared_ptr<Node>)i);
             return list;
         }*/
-        //virtual llvm::Value *code_gen(CodeGenContext &context);
+        virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 
     enum class RoutineType
@@ -84,7 +84,7 @@ namespace ast
                 list.push_back((std::shared_ptr<Node>)i);
             return list;
         }*/
-        //virtual llvm::Value *code_gen(CodeGenContext &context);
+        virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
 

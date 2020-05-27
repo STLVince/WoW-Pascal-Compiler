@@ -11,8 +11,10 @@ namespace ast
         UNKNOWN,
         INTEGER,
         REAL,
+        CHARACTER,
         STRING,
         BOOLEAN,
+        RANGE,
         ARRAY,
         RECORD
     };
@@ -25,8 +27,8 @@ namespace ast
         TypeDecl(){};
         TypeDecl(TypeName type) : type(type) {}
         ~TypeDecl(){};
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
-        //llvm::Type *get_type(CodeGenContext &context);
+        virtual llvm::Value *code_gen(CodeGenContext &context);
+        llvm::Type *getType();
     };
 
     class ArrayType : public TypeDecl
@@ -43,6 +45,7 @@ namespace ast
         TypeName type = TypeName::UNKNOWN;
 
         virtual TypeName getConstType() = 0;
+        llvm::Type *getType(CodeGenContext &context);
         ConstType(){};
         ~ConstType(){};
     };
@@ -54,7 +57,7 @@ namespace ast
 
         IntegerType(int val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::INTEGER; }
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class RealType : public ConstType
@@ -64,7 +67,7 @@ namespace ast
 
         RealType(double val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::REAL; }
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class BooleanType : public ConstType
@@ -74,7 +77,7 @@ namespace ast
 
         BooleanType(bool val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::BOOLEAN; }
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class StringType : public ConstType
@@ -85,7 +88,7 @@ namespace ast
         StringType(const char *val) : val(val) {}
         StringType(const std::string val) : val(val) {}
         virtual TypeName getConstType() { return TypeName::STRING; }
-        //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
 

@@ -12,7 +12,8 @@ namespace ast
         
         Identifier(const std::string &name) : name(name) {}
         //Identifier(const char* ptr) : name(*(new std::string(ptr))) {}
-        //virtual llvm::Value *code_gen(CodeGenContext &context);
+        llvm::Value *GetPtr(CodeGenContext &context);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
 

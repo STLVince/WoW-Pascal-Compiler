@@ -21,7 +21,7 @@ namespace ast
             list.push_back(type);
             return list;
         }*/
-        //vitural llvm::Value *code_gen(CodeGenContext &context) = 0;
+        virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 
     class ConstDecl : public Statement
@@ -40,7 +40,7 @@ namespace ast
             list.push_back(val);
             return list;
         }*/
-        //vitural llvm::Value *code_gen(CodeGenContext &context) = 0;
+        virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class VarDecl : public Statement
@@ -58,7 +58,7 @@ namespace ast
             list.push_back(type);
             return list;
         }*/
-        //vitural llvm::Value *code_gen(CodeGenContext &context) = 0;
+        virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
 
