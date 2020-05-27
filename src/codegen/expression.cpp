@@ -22,6 +22,19 @@ namespace ast
 
     llvm::Value *ProcCall::code_gen(CodeGenContext &context)
     {
+        std::cout << "inside func" << std::endl;
+        auto *func = context.module->getFunction(name->name);
+        if (func->arg_size() != args.size())
+        {
+            // throw CodegenException("Argument not match for function " + name->GetName());
+            std::cerr << "Argument not match for function " + name->GetName() << std::endl;
+        }
+        std::vector<llvm::Value *> values;
+        for (auto &arg : args)
+        {
+            values.push_back(arg->code_gen(context));
+        }
+        return context.Builder.CreateCall(func, values);
     }
 
     llvm::Value *SysFuncCall::code_gen(CodeGenContext &context)
