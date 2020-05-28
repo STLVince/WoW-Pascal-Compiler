@@ -14,3 +14,4 @@ Compiler Course Project
 mkdir build && cd build
 cmake ..
 make
+```
