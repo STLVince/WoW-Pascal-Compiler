@@ -6,14 +6,14 @@ namespace ast
     llvm::Value *FuncCall::code_gen(CodeGenContext &context)
     {
         std::cout << "inside func" << std::endl;
-        auto *func = context.module->getFunction(name->name);
-        if (func->arg_size() != args.size())
+        auto *func = context.module->getFunction(id->name);
+        if (func->arg_size() != (*arg_list).size())
         {
             // throw CodegenException("Argument not match for function " + name->GetName());
-            std::cerr << "Argument not match for function " + name->GetName() << std::endl;
+            std::cerr << "Argument not match for function " + id->name << std::endl;
         }
         std::vector<llvm::Value *> values;
-        for (auto &arg : args)
+        for (auto &arg : (*arg_list))
         {
             values.push_back(arg->code_gen(context));
         }
@@ -23,14 +23,14 @@ namespace ast
     llvm::Value *ProcCall::code_gen(CodeGenContext &context)
     {
         std::cout << "inside func" << std::endl;
-        auto *func = context.module->getFunction(name->name);
-        if (func->arg_size() != args.size())
+        auto *func = context.module->getFunction(id->name);
+        if (func->arg_size() != (*arg_list).size())
         {
             // throw CodegenException("Argument not match for function " + name->GetName());
-            std::cerr << "Argument not match for function " + name->GetName() << std::endl;
+            std::cerr << "Argument not match for function " + id->name << std::endl;
         }
         std::vector<llvm::Value *> values;
-        for (auto &arg : args)
+        for (auto &arg : (*arg_list))
         {
             values.push_back(arg->code_gen(context));
         }
@@ -40,48 +40,49 @@ namespace ast
     llvm::Value *SysFuncCall::code_gen(CodeGenContext &context)
     {
         std::cout << "inside sysfunc" << std::endl;
-        if (name == SysFunc::WRITE || name == SysFunc::WRITELN)
-        {
-            for (auto &arg : this->args->get_children())
-            {
-                auto *value = arg->code_gen(context);
-                auto x = value->getType();
-                std::vector<llvm::Value *> func_args;
-                if (value->getType()->isIntegerTy())
-                {
-                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
-                    func_args.push_back(value);
-                }
-                else if (value->getType()->isDoubleTy())
-                {
-                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
-                    func_args.push_back(value);
-                }
-                else if (value->getType()->isArrayTy())
-                {
-                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
-                    //func_args.push_back(value);
-                    auto real_arg = std::dynamic_pointer_cast<IdentifierAST>(arg);
-                    auto *value2 = real_arg->GetPtr(context);
-                    func_args.push_back(value2);
-                    //std::string mystr2 = value2->getName().str();
-                    //func_args.push_back(context.Builder.CreateGlobalStringPtr(mystr2));
-                }
-                //   else if (value->getType()->)
-                // TODO: string support
-                else
-                {
-                    // throw CodegenException("incompatible type for sysfunc call");
-                    std::cerr << "incompatible type for sysfunc call" << std::endl;
-                }
-                context.Builder.CreateCall(context.PrintfFunction, func_args);
-            }
-            // if (name == SysFunc::WRITELN)
-            // {
-            //     context.Builder.CreateCall(context.PrintfFunction, context.Builder.CreateGlobalStringPtr("\n"));
-            // }
-            return nullptr;
-        }
+        // if (name == SysFunc::WRITE || name == SysFunc::WRITELN)
+        // {
+        //     for (auto &arg : this->arg_list->get_children())
+        //     {
+        //         auto *value = arg->code_gen(context);
+        //         auto x = value->getType();
+        //         std::vector<llvm::Value *> func_args;
+        //         if (value->getType()->isIntegerTy())
+        //         {
+        //             func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
+        //             func_args.push_back(value);
+        //         }
+        //         else if (value->getType()->isDoubleTy())
+        //         {
+        //             func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
+        //             func_args.push_back(value);
+        //         }
+        //         else if (value->getType()->isArrayTy())
+        //         {
+        //             func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
+        //             //func_args.push_back(value);
+        //             auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
+        //             auto *value2 = real_arg->GetPtr(context);
+        //             func_args.push_back(value2);
+        //             //std::string mystr2 = value2->getName().str();
+        //             //func_args.push_back(context.Builder.CreateGlobalStringPtr(mystr2));
+        //         }
+        //         //   else if (value->getType()->)
+        //         // TODO: string support
+        //         else
+        //         {
+        //             // throw CodegenException("incompatible type for sysfunc call");
+        //             std::cerr << "incompatible type for sysfunc call" << std::endl;
+        //         }
+        //         context.Builder.CreateCall(context.getPrintfPrototype(), func_args);
+        //     }
+        //     // if (name == SysFunc::WRITELN)
+        //     // {
+        //     //     context.Builder.CreateCall(context.PrintfFunction, context.Builder.CreateGlobalStringPtr("\n"));
+        //     // }
+        //     return nullptr;
+        // }
+        return nullptr;
     }
 
     llvm::Value *SysProcCall::code_gen(CodeGenContext &context)
@@ -127,13 +128,13 @@ namespace ast
             {
                 return context.Builder.CreateFCmp(it->second, op1, op2);
             }
-            llvm::Instruction::OpTypes binop;
+            llvm::Instruction::BinaryOps binop;
             switch (op)
             {
-            case OpType::ADD:
+            case OpType::PLUS:
                 binop = llvm::Instruction::FAdd;
                 break;
-            case OpType::SUB:
+            case OpType::MINUS:
                 binop = llvm::Instruction::FSub;
                 break;
             case OpType::SLASH:
@@ -143,7 +144,8 @@ namespace ast
                 binop = llvm::Instruction::FMul;
                 break;
             default:
-                throw CodegenException("operation not valid");
+                // throw CodegenException("operation not valid");
+                std::cerr << "operation not valid" << std::endl;
             }
             return context.Builder.CreateBinOp(binop, op1, op2);
         }
@@ -156,7 +158,7 @@ namespace ast
             {
                 return context.Builder.CreateICmp(it->second, op1, op2);
             }
-            llvm::Instruction::OpTypes binop;
+            llvm::Instruction::BinaryOps binop;
             switch (op)
             {
             case OpType::AND:
@@ -169,7 +171,8 @@ namespace ast
                 binop = llvm::Instruction::Xor;
                 break;
             default:
-                throw CodegenException("operation not valid");
+                // throw CodegenException("operation not valid");
+                std::cerr << "operation not valid" << std::endl;
             }
             return context.Builder.CreateBinOp(binop, op1, op2);
         }
@@ -183,13 +186,13 @@ namespace ast
             {
                 return context.Builder.CreateICmp(it->second, op1, op2);
             }
-            llvm::Instruction::OpTypes binop;
+            llvm::Instruction::BinaryOps binop;
             switch (op)
             {
-            case OpType::ADD:
+            case OpType::PLUS:
                 binop = llvm::Instruction::Add;
                 break;
-            case OpType::SUB:
+            case OpType::MINUS:
                 binop = llvm::Instruction::Sub;
                 break;
             case OpType::MUL:
@@ -216,7 +219,8 @@ namespace ast
                 binop = llvm::Instruction::FDiv;
                 break;
             default:
-                throw CodegenException("operator not valid");
+                // throw CodegenException("operator not valid");
+                std::cerr << "operation not valid" << std::endl;
             }
             return context.Builder.CreateBinOp(binop, op1, op2);
         }
