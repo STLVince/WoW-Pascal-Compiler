@@ -34,5 +34,5 @@ add_executable(opc
     ${SOURCE_FILES}
 )
 
-llvm_map_components_to_libnames(llvm_libs support core irreader all)
-target_link_libraries(opc ${llvm_libs})
+llvm_map_components_to_libnames(LLVM_LIBS support core irreader all)
+target_link_libraries(opc ${LLVM_LIBS})
