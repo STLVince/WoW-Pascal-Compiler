@@ -4,6 +4,7 @@
 #include <map>
 #include <stack>
 #include <vector>
+#include <iostream>
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
@@ -15,6 +16,7 @@
 #include <llvm/IR/CallingConv.h>
 #include <llvm/IR/IRPrintingPasses.h>
 #include <llvm/IR/IRBuilder.h>
+#include "llvm/IR/Verifier.h"
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/Support/TargetSelect.h>
@@ -23,7 +25,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
-#include "utils/ast.hpp"
+#include "../utils/ast.hpp"
 
 class GlobalLLVMContext
 {
@@ -63,11 +65,13 @@ public:
     llvm::IRBuilder<> Builder;    
     llvm::Function *printf;
     std::map<llvm::Function *, llvm::Function *> functionParent;
-    static std::vector<int> labels;
+    // static std::vector<int> labels;
     std::map<std::string, llvm::Type *> aliases;
-    std::vector<std::string> traces;
-    llvm::BasicBlock* labelBlock[10000];
-    bool is_subroutine = false;
+    // std::vector<std::string> traces;
+    // llvm::BasicBlock* labelBlock[10000];
+    // bool is_subroutine = false;
+    std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
+    std::unique_ptr<llvm::legacy::PassManager> mpm;
 
     CodeGenContext();
     std::map<std::string, llvm::Value *> &locals();
@@ -81,7 +85,7 @@ public:
     llvm::Function *getPrintfPrototype();
     
     void generateCode(ast::Program& root);
-    llvm::GenericValue runCode();
+    void outputCode();
 };
 
 #endif

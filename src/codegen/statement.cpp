@@ -4,8 +4,7 @@ namespace ast
 {
     llvm::Value *AssignmentStmt::code_gen(CodeGenContext &context)
     {
-        // printf("inside assignment ast.\n");
-        std::cout << "inside assignment ast." << std::endl;
+        std::cerr << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
         // get the lhs pointer, first cast
         // TODO handle array type
         // llvm::Value *lhs;
@@ -23,10 +22,9 @@ namespace ast
         //         std::cerr << "assignment left argument not a identifier.\n" << std::endl;
         // }
         auto lhs = this->lhs->GetPtr(context);
-        printf("found\n");
         if (std::dynamic_pointer_cast<FuncCall>(this->lhs))
         {
-            printf("It is a custom func call!\n");
+            std::cerr << "It is a custom function call!" << std::endl;
         }
 
         auto *rhs = this->rhs->code_gen(context);
@@ -62,30 +60,38 @@ namespace ast
             std::cerr << "if statement not boolean" << std::endl;
         }
 
-        auto *func = context.Builder.GetInsertBlock()->getParent();
-        auto *then_stat = llvm::BasicBlock::Create(context.module->getContext(), "then", func);
+        // create block for the then and else cases
+        // insert the then block at the end of the function
+        auto *function = context.Builder.GetInsertBlock()->getParent();
+        auto *then_stat = llvm::BasicBlock::Create(context.module->getContext(), "then", function);
         auto *else_stat = llvm::BasicBlock::Create(context.module->getContext(), "else");
         auto *end = llvm::BasicBlock::Create(context.module->getContext(), "end");
         context.Builder.CreateCondBr(cond, then_stat, else_stat);
 
+        // emit then code
         context.Builder.SetInsertPoint(then_stat);
         then_stmt->code_gen(context);
         context.Builder.CreateBr(end);
 
-        func->getBasicBlockList().push_back(else_stat);
+        // emit else code
+        function->getBasicBlockList().push_back(else_stat);
         context.Builder.SetInsertPoint(else_stat);
-        else_stmt->code_gen(context);
+        if (else_stmt != nullptr)
+        {
+            else_stmt->code_gen(context);
+        }        
         context.Builder.CreateBr(end);
 
-        func->getBasicBlockList().push_back(end);
+        // emit merge block
+        function->getBasicBlockList().push_back(end);
         context.Builder.SetInsertPoint(end);
     }
 
     llvm::Value *WhileStmt::code_gen(CodeGenContext &context)
     {
-        auto *func = context.Builder.GetInsertBlock()->getParent();
-        auto *while_stat = llvm::BasicBlock::Create(context.module->getContext(), "while", func);
-        auto *loop_stat = llvm::BasicBlock::Create(context.module->getContext(), "loop", func);
+        auto *function = context.Builder.GetInsertBlock()->getParent();
+        auto *while_stat = llvm::BasicBlock::Create(context.module->getContext(), "while", function);
+        auto *loop_stat = llvm::BasicBlock::Create(context.module->getContext(), "loop", function);
         auto *end = llvm::BasicBlock::Create(context.module->getContext(), "end");
 
         context.Builder.CreateBr(while_stat);
@@ -103,7 +109,7 @@ namespace ast
         loop_stmt->code_gen(context);
         context.Builder.CreateBr(while_stat); // context -> statement
 
-        func->getBasicBlockList().push_back(end); // end label
+        function->getBasicBlockList().push_back(end); // end label
         context.Builder.SetInsertPoint(end);
 
         return nullptr;
@@ -153,12 +159,14 @@ namespace ast
         context.popBlock();
         context.pushBlock(loopStmtB);
 
+        // emit loop body code
         context.Builder.SetInsertPoint(loopStmtB);
         this->loop_stmt->code_gen(context);
         context.Builder.CreateBr(loopEndB);
         context.popBlock();
         context.pushBlock(loopEndB);
 
+        // emit step code
         context.Builder.SetInsertPoint(loopEndB);
         auto int1 = new IntegerType(1);
         BinaryOp *binOP;
@@ -172,6 +180,8 @@ namespace ast
         }
         AssignmentStmt *assign2 = new AssignmentStmt(this->loop_var, std::shared_ptr<BinaryOp>(binOP));
         assign2->code_gen(context);
+
+        // emit test code
         auto testGE = new BinaryOp(this->loop_var, OpType::GT, this->end_val);
         auto test = testGE->code_gen(context);
         auto ret = context.Builder.CreateCondBr(test, loopExitB, loopStmtB);

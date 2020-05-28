@@ -1,11 +1,39 @@
 #include <utility>
-#include <iostream>
 
 #include "CodeGenContext.h"
 
 CodeGenContext::CodeGenContext() : Builder(GlobalLLVMContext::getGlobalContext())
 {
     module = new llvm::Module("Pascal", GlobalLLVMContext::getGlobalContext());
+    fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module.get());
+
+    // createPromoteMemoryToRegister - Provide an entry point to create this pass.
+    fpm->add(llvm::createPromoteMemoryToRegisterPass());
+
+    // Do simple "peephole" optimizations and bit-twiddling optzns.
+    fpm->add(llvm::createInstructionCombiningPass());
+
+    // Reassociate expressions.
+    fpm->add(llvm::createReassociatePass());
+
+    // Eliminate Common SubExpressions.
+    fpm->add(llvm::createGVNPass());
+
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    fpm->add(llvm::createCFGSimplificationPass());
+    fpm->doInitialization();
+
+    mpm = std::make_unique<llvm::legacy::PassManager>();
+    // createConstantMergePass - This function returns a new pass that merges
+    // duplicate global constants together into a single constant that is shared.
+    // This is useful because some passes (ie TraceValues) insert a lot of string
+    // constants into the program, regardless of whether or not they duplicate an
+    // existing string.
+    mpm->add(llvm::createConstantMergePass());
+
+    // createFunctionInliningPass - Return a new pass object that uses a heuristic
+    // to inline direct function calls to small functions.
+    mpm->add(llvm::createFunctionInliningPass());
 }
 
 std::map<std::string, llvm::Value *> &CodeGenContext::locals()
@@ -17,10 +45,10 @@ llvm::Value *CodeGenContext::getValue(std::string name)
 {
     llvm::Function *nowFunction = currentFunction;
 
-    std::cout << "Start getValue for " << name << std::endl;
-    std::cout << "found:" << currentFunction->getValueSymbolTable()->lookup(name) << std::endl;
-    std::cout << "main:" << mainFunction << std::endl;
-    std::cout << "current:" << currentFunction << std::endl;
+    std::cerr << "Start getValue for " << name << std::endl;
+    std::cerr << "found:" << currentFunction->getValueSymbolTable()->lookup(name) << std::endl;
+    std::cerr << "main:" << mainFunction << std::endl;
+    std::cerr << "current:" << currentFunction << std::endl;
     if ((nowFunction->getValueSymbolTable()->lookup(name)) == NULL)
     {
         if (module->getGlobalVariable(name) == NULL)
@@ -90,55 +118,104 @@ llvm::Function *CodeGenContext::getPrintfPrototype()
     return func;
 }
 
-/* Compile the AST into a module */
 void CodeGenContext::generateCode(ast::Program &root)
 {
 
     std::cout << "Generating code...\n";
 
-    /* Create the top level interpreter function to call as entry */
+    // Create the top level interpreter function to call as entry
     std::vector<llvm::Type *> argTypes;
     llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext()), makeArrayRef(argTypes), false);
-    // change GlobalValue::InternalLinkage into ExternalLinkage
+
     mainFunction = llvm::Function::Create(ftype, llvm::GlobalValue::ExternalLinkage, "main", module);
-    llvm::BasicBlock *bblock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", mainFunction, 0);
+    llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", mainFunction, 0);
 
     CodeGenContext::printf = getPrintfPrototype();
 
-    /* Push a new variable/block context */
-    pushBlock(bblock);
+    // Push a new variable/block context
+    pushBlock(basicBlock);
     currentFunction = mainFunction;
-    for (auto label : labels)
-    {
-        labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
-    }
-    root.code_gen(*this); /* emit bytecode for the toplevel block */
+    root.code_gen(*this);
     llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), currentBlock());
     popBlock();
 
-    /* Print the bytecode in a human-readable format 
-	   to see if our program compiled properly
-	 */
-    std::cout << "Code is generated." << std::endl;
+    // verify the main function
+    llvm::verifyFunction(*mainFunction, &llvm::errs());
+
+    // perform optimization
+    context.fpm->run(*mainFunction);
+    context.mpm->run(*module);
+
+    // Print the bytecode in a human-readable format
+    // to see if our program compiled properly
     llvm::legacy::PassManager pm;
     pm.add(llvm::createPrintModulePass(llvm::outs()));
     //pm.run(*module);
 
     // write IR to stderr
-    std::cout << "code is gen~~~" << std::endl;
     module->dump();
-    std::cout << "code is gen~!~" << std::endl;
+    std::cout << "Code is generated!" << std::endl;
 }
 
-/* Executes the AST by running the main function */
-llvm::GenericValue CodeGenContext::runCode()
+void CodeGenContext::outputCode(std::string filename)
 {
-    // std::cout << "Running begining...\n";
-    // std::cout << "========================================" << std::endl;
-    // llvm::ExecutionEngine *ee = llvm::EngineBuilder(module).create();
-    // std::vector<llvm::GenericValue> noargs;
-    // llvm::GenericValue v = ee->runFunction(mainFunction, noargs);
-    // std::cout << "========================================" << std::endl;
-    // std::cout << "Running end.\n";
-    // return v;
+    std::error_code ec;
+    llvm::raw_fd_ostream fd(filename, ec, llvm::sys::fs::F_None);
+    if (ec)
+    {
+        llvm::errs() << "Could not open file: " << ec.message();
+        exit(1);
+    }
+
+    int pos = filename.rfind('/');
+    std::string ext = filename.substr(pos1 + 1);
+    llvm::TargetMachine::CodeGenFileType type;
+    if (strcmp(argv[1], "ll") == 0)
+    {
+        module->print(fd, nullptr);
+    }
+    else if (strcmp(argv[1], "s") == 0)
+    {
+        type = llvm::TargetMachine::CGFT_AssemblyFile;
+    }
+    else if (strcmp(argv[1], "o") == 0)
+    {
+        type = llvm::TargetMachine::CGFT_ObjectFile;
+    }
+
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+
+    auto target_triple = llvm::sys::getDefaultTargetTriple();
+    module.setTargetTriple(target_triple);
+
+    std::string error;
+    auto target = llvm::TargetRegistry::lookupTarget(target_triple, error);
+    if (!target)
+    {
+        llvm::errs() << error;
+        return;
+    }
+
+    auto cpu = "generic";
+    auto features = "";
+    llvm::TargetOptions opt;
+    auto rm = llvm::Optional<llvm::Reloc::Model>();
+    auto target_machine = target->createTargetMachine(target_triple, cpu, features, opt, rm);
+    module.setDataLayout(target_machine->createDataLayout());
+
+    llvm::legacy::PassManager pass;
+    if (target_machine->addPassesToEmitFile(pass, dest, nullptr, type))
+    {
+        llvm::errs() << "The target machine cannot emit an object file";
+        exit(1);
+    }
+
+    llvm::verifyModule(module, &llvm::errs());
+    pass.run(module);
+
+    dest.flush();
 }

@@ -1,12 +1,11 @@
 #include "../AST/identifier.hpp"
-#include <iostream>
 
 namespace ast
 {
     llvm::Value *Identifier::GetPtr(CodeGenContext &context)
     {
         // first find in local context
-        std::cout << "finding " << name << std::endl;
+        std::cerr << "finding " << name << std::endl;
         auto *value = context.getValue(name);
         if (!value)
         {
@@ -15,7 +14,7 @@ namespace ast
         if (!value)
         {
             // throw CodegenException("Identifier not found");
-            std::cerr << "Identifier" << name << "not found" << std::endl
+            std::cerr << "Identifier" << name << "not found" << std::endl;
         }
         return value;
     }

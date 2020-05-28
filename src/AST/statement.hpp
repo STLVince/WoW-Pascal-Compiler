@@ -61,7 +61,7 @@ namespace ast
     class ForStmt : public Statement
     {
     public:
-        int direct; //1 to. -1 downto
+        int direct; // 1 to; -1 downto
         std::shared_ptr<Identifier> loop_var;
         std::shared_ptr<Expression> start_val;
         std::shared_ptr<Expression> end_val;
