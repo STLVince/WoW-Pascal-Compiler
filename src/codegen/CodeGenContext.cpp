@@ -1,11 +1,18 @@
 #include <utility>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Scalar/GVN.h>
+#include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/Utils.h>
 
 #include "CodeGenContext.h"
 
 CodeGenContext::CodeGenContext() : Builder(GlobalLLVMContext::getGlobalContext())
 {
     module = new llvm::Module("Pascal", GlobalLLVMContext::getGlobalContext());
-    fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module.get());
+    fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module);
 
     // createPromoteMemoryToRegister - Provide an entry point to create this pass.
     fpm->add(llvm::createPromoteMemoryToRegisterPass());
@@ -135,6 +142,10 @@ void CodeGenContext::generateCode(ast::Program &root)
     // Push a new variable/block context
     pushBlock(basicBlock);
     currentFunction = mainFunction;
+    for (auto label : labels)
+    {
+        labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
+    }
     root.code_gen(*this);
     llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), currentBlock());
     popBlock();
@@ -143,8 +154,8 @@ void CodeGenContext::generateCode(ast::Program &root)
     llvm::verifyFunction(*mainFunction, &llvm::errs());
 
     // perform optimization
-    context.fpm->run(*mainFunction);
-    context.mpm->run(*module);
+    fpm->run(*mainFunction);
+    mpm->run(*module);
 
     // Print the bytecode in a human-readable format
     // to see if our program compiled properly
@@ -160,7 +171,7 @@ void CodeGenContext::generateCode(ast::Program &root)
 void CodeGenContext::outputCode(std::string filename)
 {
     std::error_code ec;
-    llvm::raw_fd_ostream fd(filename, ec, llvm::sys::fs::F_None);
+    llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::F_None);
     if (ec)
     {
         llvm::errs() << "Could not open file: " << ec.message();
@@ -168,17 +179,17 @@ void CodeGenContext::outputCode(std::string filename)
     }
 
     int pos = filename.rfind('/');
-    std::string ext = filename.substr(pos1 + 1);
+    std::string ext = filename.substr(pos + 1);
     llvm::TargetMachine::CodeGenFileType type;
-    if (strcmp(argv[1], "ll") == 0)
+    if (ext == "ll")
     {
-        module->print(fd, nullptr);
+        module->print(dest, nullptr);
     }
-    else if (strcmp(argv[1], "s") == 0)
+    else if (ext == "s")
     {
         type = llvm::TargetMachine::CGFT_AssemblyFile;
     }
-    else if (strcmp(argv[1], "o") == 0)
+    else if (ext == "o")
     {
         type = llvm::TargetMachine::CGFT_ObjectFile;
     }
@@ -190,7 +201,7 @@ void CodeGenContext::outputCode(std::string filename)
     llvm::InitializeAllAsmPrinters();
 
     auto target_triple = llvm::sys::getDefaultTargetTriple();
-    module.setTargetTriple(target_triple);
+    module->setTargetTriple(target_triple);
 
     std::string error;
     auto target = llvm::TargetRegistry::lookupTarget(target_triple, error);
@@ -205,7 +216,7 @@ void CodeGenContext::outputCode(std::string filename)
     llvm::TargetOptions opt;
     auto rm = llvm::Optional<llvm::Reloc::Model>();
     auto target_machine = target->createTargetMachine(target_triple, cpu, features, opt, rm);
-    module.setDataLayout(target_machine->createDataLayout());
+    module->setDataLayout(target_machine->createDataLayout());
 
     llvm::legacy::PassManager pass;
     if (target_machine->addPassesToEmitFile(pass, dest, nullptr, type))
@@ -214,8 +225,8 @@ void CodeGenContext::outputCode(std::string filename)
         exit(1);
     }
 
-    llvm::verifyModule(module, &llvm::errs());
-    pass.run(module);
+    llvm::verifyModule(*module, &llvm::errs());
+    pass.run(*module);
 
     dest.flush();
 }

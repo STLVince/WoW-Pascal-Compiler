@@ -64,11 +64,11 @@ public:
     llvm::Function *mainFunction;
     llvm::IRBuilder<> Builder;    
     llvm::Function *printf;
-    std::map<llvm::Function *, llvm::Function *> functionParent;
-    // static std::vector<int> labels;
+    std::map<llvm::Function *, llvm::Function *> functionParent;    
     std::map<std::string, llvm::Type *> aliases;
     // std::vector<std::string> traces;
-    // llvm::BasicBlock* labelBlock[10000];
+    static std::vector<int> labels;
+    llvm::BasicBlock* labelBlock[10000];
     // bool is_subroutine = false;
     std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
     std::unique_ptr<llvm::legacy::PassManager> mpm;
@@ -85,7 +85,7 @@ public:
     llvm::Function *getPrintfPrototype();
     
     void generateCode(ast::Program& root);
-    void outputCode();
+    void outputCode(std::string filename);
 };
 
 #endif

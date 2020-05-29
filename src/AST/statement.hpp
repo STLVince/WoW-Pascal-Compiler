@@ -10,6 +10,9 @@
 extern std::ofstream astDot;
 namespace ast
 {
+    class CaseStmt;
+    using CaseList = std::vector<std::shared_ptr<CaseStmt>>;
+
     class AssignmentStmt : public Statement
     {
     public:
@@ -124,6 +127,70 @@ namespace ast
             std::string loopName = nodeName + "_loop";
             astDot << nodeName << "->" << loopName << std::endl;
             loop_stmt->printSelf(loopName);
+        }
+        virtual llvm::Value *code_gen(CodeGenContext &context);
+    };
+
+    class CaseStmt : public Statement {
+    public:
+        std::shared_ptr<Expression> condition;
+        std::shared_ptr<Statement> then_stmt;
+        llvm::BasicBlock *bblock, *bexit;
+        CaseStmt(std::shared_ptr<Expression> condition, std::shared_ptr<Statement> then_stmt):condition(condition),then_stmt(then_stmt){}
+        void printSelf(std::string nodeName)
+        {
+            std::string condName = nodeName + "_condition";
+            astDot << nodeName << "->" << condName << std::endl;
+            condition->printSelf(condName);
+            std::string thenName = nodeName + "_then";
+            astDot << nodeName << "->" << thenName << std::endl;
+            then_stmt->printSelf(thenName);
+        }
+        virtual llvm::Value *code_gen(CodeGenContext &context);
+    };
+
+    class SwitchStmt : public Statement {
+    public:
+        std::shared_ptr<Expression> expression;
+        std::shared_ptr<CaseList> list;
+        SwitchStmt(std::shared_ptr<Expression> expression,std::shared_ptr<CaseList> list):expression(expression),list(list){}
+        void printSelf(std::string nodeName)
+        {
+            std::string exprName = nodeName + "_expression";
+            astDot << nodeName << "->" << exprName << std::endl;
+            expression->printSelf(exprName);
+            for (int i = 0; i < list.get()->size(); i++)
+            {
+                std::string caseName = nodeName + "_case" + std::to_string(i);
+                astDot << nodeName << "->" << caseName << std::endl;
+                (list.get())[i]->printSelf(caseName);
+            }            
+        }
+        virtual llvm::Value *code_gen(CodeGenContext &context);
+    };
+
+    class LabelStmt : public Statement {
+    public:
+        int label;
+        std::shared_ptr<Statement> statement;
+        LabelStmt(int label,std::shared_ptr<Statement> statement):label(label),statement(statement){}
+        void printSelf(std::string nodeName)
+        {
+            std::string stmtName = nodeName + "_statement";
+            astDot << nodeName << "->" << stmtName << std::endl;
+            statement->printSelf(stmtName);
+        }
+        virtual llvm::Value *code_gen(CodeGenContext &context);
+    };
+
+    class GotoStmt : public Statement {
+    public:
+        int label;
+        GotoStmt(int label):label(label){}
+        void printSelf(std::string nodeName)
+        {
+            std::string labelName = nodeName + "_label" + std::to_string(label);
+            astDot << nodeName << "->" << labelName << std::endl;
         }
         virtual llvm::Value *code_gen(CodeGenContext &context);
     };

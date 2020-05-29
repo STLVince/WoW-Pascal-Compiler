@@ -79,7 +79,7 @@ namespace ast
         if (else_stmt != nullptr)
         {
             else_stmt->code_gen(context);
-        }        
+        }
         context.Builder.CreateBr(end);
 
         // emit merge block
@@ -152,7 +152,7 @@ namespace ast
         context.pushBlock(loopEntryB);
         context.Builder.SetInsertPoint(loopEntryB);
 
-        // initial for   
+        // initial for
         AssignmentStmt *assign = new AssignmentStmt(this->loop_var, this->start_val);
         assign->code_gen(context);
         context.Builder.CreateBr(loopStmtB);
@@ -190,6 +190,71 @@ namespace ast
         context.pushBlock(loopExitB);
         context.Builder.SetInsertPoint(loopExitB);
 
+        return ret;
+    }
+
+    llvm::Value *CaseStmt::code_gen(CodeGenContext &context)
+    {
+        // std::cerr << "in case" << condition << std::endl;
+        auto ret = then_stmt->code_gen(context);
+        // std::cout << "in case 2" << condition << std::endl;
+        llvm::BranchInst::Create(bexit, context.currentBlock());
+        // std::cout << "in case 3" << condition << std::endl;
+        return ret;
+    }
+
+    llvm::Value *SwitchStmt::code_gen(CodeGenContext &context)
+    {
+        llvm::BasicBlock *bexit = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "exit", context.currentFunction);
+
+        std::vector<llvm::BasicBlock *> bblocks;
+        // std::cout << (*list)[1]->condition << std::endl;
+
+        for (int i = 0; i < (list->size()); i++)
+        {
+            auto bblock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "caseStmt", context.currentFunction);
+            bblocks.push_back(bblock);
+        }
+
+        for (int i = 0; i < bblocks.size() - 1; i++)
+        {
+            // std::cout << "in bblocks\n";
+            // std::cout << (*list)[0]->condition << "\n";
+            auto con = new BinaryOp(expression, OpType::EQ, (*list)[i]->condition);
+            llvm::BasicBlock *bnext = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "next", context.currentFunction);
+            llvm::BranchInst::Create(bblocks[i], bnext, con->code_gen(context), context.currentBlock());
+            context.pushBlock(bnext);
+        }
+        auto con = new BinaryOp(expression, OpType::EQ, (*list)[bblocks.size() - 1]->condition);
+        auto ret = llvm::BranchInst::Create(bblocks[bblocks.size() - 1], bexit, con->code_gen(context), context.currentBlock());
+        for (int i = 0; i < bblocks.size(); i++)
+        {
+            context.pushBlock(bblocks[i]);
+            auto cst = (*list)[i];
+            cst->bexit = bexit;
+            cst->code_gen(context);
+            // cout << "gggg~~~\n";
+            context.popBlock();
+        }
+
+        context.pushBlock(bexit);
+
+        return ret;
+    }
+
+    llvm::Value *LabelStmt::code_gen(CodeGenContext &context)
+    {
+        llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
+        context.pushBlock(context.labelBlock[label]);
+        return statement->code_gen(context);
+    }
+
+    llvm::Value *GotoStmt::code_gen(CodeGenContext &context)
+    {
+        llvm::Value *test = (new BooleanType("true"))->code_gen(context);
+        llvm::BasicBlock *bafter = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "afterGoto", context.currentFunction);
+        auto ret = llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
+        context.pushBlock(bafter);
         return ret;
     }
 } // namespace ast
