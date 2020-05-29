@@ -1,8 +1,9 @@
-%{
+%code requires {
 #include <iostream>
 #include "parser.hpp"
 #include "utils/ast.hpp"
 
+extern int yylex(void);
 ast::Program* astRoot;
 %}
 
@@ -24,18 +25,21 @@ ast::Program* astRoot;
     ast::TypeDeclList*      astTypeDeclList;
     ast::VarDeclList*       astVarDeclList;
     ast::RoutineList*       astRoutineList;
+    ast::NameList*          astNameList;
     ast::StatementList*     astStatementList;
     ast::ExpressionList*    astExpressionList;
+    ast::CaseList*          astCaseList;
+    ast::CaseStmt*          astCaseStmt;
 }
 
-%token PROGRAM ID SEMI DOT ASSIGN LP RP LB RB DOT COMMA COLON SEMI
+%token PROGRAM ID SEMI DOT ASSIGN LP RP LB RB COMMA COLON
 %token ARRAY _BEGIN SYS_TYPE CONST END FUNCTION PROCEDURE RECORD VAR TYPE
 %token DOWNTO DO REPEAT TO THEN WHILE UNTIL FOR IF ELSE CASE OF GOTO
 %token EQUAL UNEQUAL GE GT LE LT AND OR NOT PLUS MINUS MUL DIV DIVI MOD
 %token INTEGER REAL CHAR STRING SYS_BOOL SYS_CON
 %token READ SYS_PROC SYS_FUNCT
 
-%type <debug> PROGRAM ID SEMI DOT ASSIGN LP RP LB RB DOT COMMA COLON SEMI
+%type <debug> PROGRAM ID SEMI ASSIGN LP RP LB RB DOT COMMA COLON
 %type <debug> ARRAY _BEGIN SYS_TYPE CONST END FUNCTION PROCEDURE RECORD VAR TYPE
 %type <debug> DOWNTO DO REPEAT TO THEN WHILE UNTIL FOR IF ELSE CASE OF GOTO
 %type <debug> EQUAL UNEQUAL GE GT LE LT AND OR NOT PLUS MINUS MUL DIV DIVI MOD
@@ -54,9 +58,12 @@ ast::Program* astRoot;
 %type <astConstDeclList>    const_expr_list const_part
 %type <astTypeDeclList>     type_part type_decl_list
 %type <astVarDeclList>      parameters para_decl_list para_type_list var_part var_decl_list var_decl
+%type <asrNameList>         name_list;
 %type <astRoutineList>      routine_part
 %type <astStatementList>    routine_body compound_stmt stmt_list
 %type <astExpressionList>   expression_list
+%type <astCaseStmt>		    case_expr 
+%type <astCaseList>		    case_expr_list
 
 %start program
 %%
@@ -189,7 +196,7 @@ function_decl: function_head SEMI sub_routine SEMI {
         $$ = new ast::Routine($1, $3);
     };
 
-function_head: FUNCTION parameters COLON simple_type_decl {
+function_head: FUNCTION ID parameters COLON simple_type_decl {
         $$ = new ast::Routine(new ast::Identifier($2), ast::RoutineType::FUNCTION, $3, $5);
     };
 
@@ -233,7 +240,7 @@ stmt_list: stmt_list  stmt  SEMI {
 stmt: INTEGER COLON non_label_stmt {
         $$ = new ast::LabelStmt(atoi($1), $3);
     }
-    |   { $$ = $1; };
+    |   non_label_stmt { $$ = $1; };
 
 non_label_stmt:
     assign_stmt     { $$ = (ast::Statement*) $1; }

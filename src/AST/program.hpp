@@ -16,6 +16,7 @@ namespace ast
     using VarDeclList = std::vector<std::shared_ptr<VarDecl>>;
     using RoutineList = std::vector<std::shared_ptr<Routine>>;
     using StatementList = std::vector<std::shared_ptr<Statement>>;
+    using NameList = std::vector<std::string>;
 
     class Program : public Node
     {
