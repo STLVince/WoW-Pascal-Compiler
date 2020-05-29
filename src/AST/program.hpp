@@ -7,7 +7,9 @@
 #include "expression.hpp"
 #include "type.hpp"
 #include "statement.hpp"
+#include <fstream>
 
+extern std::ofstream astDot;
 namespace ast
 {
     class Routine;
@@ -43,6 +45,43 @@ namespace ast
                 list.push_back((std::shared_ptr<Node>)i);
             return list;
         }*/
+        void printSelf()
+        {
+            astDot << "digraph AST {" << std::endl;
+            std::string nodeName = "ProgramNode";
+            
+            // const decl part
+            for (auto const_decl : *(this->const_part))
+            {
+                std::string childName = nodeName + "_const_decl_" + const_decl->name->name;
+                astDot << nodeName << "->" << childName << std::endl;
+                const_decl->printSelf(childName);
+            }
+
+            // deal with variable declaration
+            for (auto var_decl : *(this->var_part))
+            {
+                std::string childName = nodeName + "_var_decl_" + var_decl->name->name;
+                astDot << nodeName << "->" << childName << std::endl;
+                var_decl->printSelf(childName);
+            }
+
+            for (auto routine : *(this->routine_part))
+            {
+                std::string childName = nodeName + "_routinePart_" + routine->name->name;
+                astDot << nodeName << "->" << childName << std::endl;
+                routine->printSelf(childName);
+            }
+
+            // deal with program statements
+            for (auto body : *(this->routine_body))
+            {
+                std::string childName = nodeName + "_routineBody_" + body->name->name;
+                astDot << nodeName << "->" << childName << std::endl;
+                body->printSelf(childName);
+            }
+            astDot << "}" << std::endl;
+        }
         virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 
@@ -84,6 +123,21 @@ namespace ast
                 list.push_back((std::shared_ptr<Node>)i);
             return list;
         }*/
+        void printSelf(std::string nodeName)
+        {
+            for (auto t : *(this->type))
+            {
+                std::string childName = nodeName + "_TypeDecl_" + t->name->name;
+                astDot << nodeName << "->" << childName << std::endl;
+                t->printSelf(childName);
+            }
+            for (auto arg : *(this->arg_list))
+            {
+                std::string childName = nodeName + "_VarDecl_" + arg->name->name;
+                astDot << nodeName << "->" << childName << std::endl;
+                arg->printSelf(childName);
+            }
+        }
         virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast

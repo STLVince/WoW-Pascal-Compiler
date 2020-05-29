@@ -2,6 +2,9 @@
 #define _AST_IDENTIFIER_HPP_
 
 #include "node.hpp"
+#include <fstream>
+
+extern std::ofstream astDot;
 
 namespace ast
 {
@@ -12,6 +15,7 @@ namespace ast
         
         Identifier(const std::string &name) : name(name) {}
         //Identifier(const char* ptr) : name(*(new std::string(ptr))) {}
+        void printSelf(std::string nodeName) {}
         llvm::Value *GetPtr(CodeGenContext &context);
         llvm::Value *code_gen(CodeGenContext &context);
     };

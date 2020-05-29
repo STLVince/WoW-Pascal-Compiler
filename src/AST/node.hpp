@@ -9,8 +9,10 @@
 #include <memory>
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Instruction.h"
-#include "codegen/CodeGenContext.h"
+#include "../codegen/CodeGenContext.h"
+#include <fstream>
 
+extern std::ofstream astDot;
 namespace ast
 {
     class Node
@@ -18,6 +20,7 @@ namespace ast
     public:
         virtual ~Node(){};
         //virtual std::vector<std::shared_ptr<Node>> getChildren() { return *(new std::vector<std::shared_ptr<Node>>()); }
+        virtual void printSelf(std::string nodeName) = 0;
         virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 
@@ -26,6 +29,7 @@ namespace ast
     public:
         Expression(){};
         ~Expression(){};
+        virtual void printSelf(std::string nodeName) = 0;
         virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 
@@ -34,6 +38,7 @@ namespace ast
     public:
         Statement(){};
         ~Statement(){};
+        virtual void printSelf(std::string nodeName) = 0;
         virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 } // namespace ast

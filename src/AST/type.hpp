@@ -3,7 +3,9 @@
 
 #include "node.hpp"
 #include "identifier.hpp"
+#include <fstream>
 
+extern std::ofstream astDot;
 namespace ast
 {
     enum class TypeName
@@ -27,8 +29,9 @@ namespace ast
         TypeDecl(){};
         TypeDecl(TypeName type) : type(type) {}
         ~TypeDecl(){};
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName) {}
         llvm::Type *getType();
+        virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class ArrayType : public TypeDecl
@@ -48,6 +51,7 @@ namespace ast
         llvm::Type *getType(CodeGenContext &context);
         ConstType(){};
         ~ConstType(){};
+        void printSelf(std::string nodeName) {}
     };
 
     class IntegerType : public ConstType
@@ -56,7 +60,11 @@ namespace ast
         int val;
 
         IntegerType(int val) : val(val) {}
-        virtual TypeName getConstType() { return TypeName::INTEGER; }
+        virtual TypeName getConstType()
+        {
+            return TypeName::INTEGER;
+        }
+        void printSelf(std::string nodeName) {}
         llvm::Value *code_gen(CodeGenContext &context);
     };
 
@@ -66,7 +74,12 @@ namespace ast
         double val;
 
         RealType(double val) : val(val) {}
-        virtual TypeName getConstType() { return TypeName::REAL; }
+        virtual TypeName getConstType()
+        {
+            return TypeName::REAL;
+        }
+        
+        void printSelf(std::string nodeName) {}
         llvm::Value *code_gen(CodeGenContext &context);
     };
 
@@ -76,7 +89,11 @@ namespace ast
         bool val;
 
         BooleanType(bool val) : val(val) {}
-        virtual TypeName getConstType() { return TypeName::BOOLEAN; }
+        virtual TypeName getConstType()
+        {
+            return TypeName::BOOLEAN;
+        }
+        void printSelf(std::string nodeName) {}
         llvm::Value *code_gen(CodeGenContext &context);
     };
 
@@ -87,7 +104,11 @@ namespace ast
 
         StringType(const char *val) : val(val) {}
         StringType(const std::string val) : val(val) {}
-        virtual TypeName getConstType() { return TypeName::STRING; }
+        virtual TypeName getConstType()
+        {
+            return TypeName::STRING;
+        }
+        void printSelf(std::string nodeName) {}
         llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
