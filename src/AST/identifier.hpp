@@ -2,9 +2,6 @@
 #define _AST_IDENTIFIER_HPP_
 
 #include "node.hpp"
-#include <fstream>
-
-extern std::ofstream astDot;
 
 namespace ast
 {

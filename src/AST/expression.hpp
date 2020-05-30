@@ -4,9 +4,7 @@
 #include "node.hpp"
 #include "identifier.hpp"
 #include "declation.hpp"
-#include <fstream>
 
-extern std::ofstream astDot;
 namespace ast
 {
     using ExpressionList = std::vector<std::shared_ptr<Expression>>;
@@ -31,7 +29,7 @@ namespace ast
         {
             for (auto arg : *(this->arg_list))
             {
-                std::string childName = nodeName + "_VarDecl_" + arg->name->name;
+                std::string childName = nodeName + "_VarDecl";
                 astDot << nodeName << "->" << childName << std::endl;
                 arg->printSelf(childName);
             }
@@ -59,7 +57,7 @@ namespace ast
         {
             for (auto arg : *(this->arg_list))
             {
-                std::string childName = nodeName + "_VarDecl_" + arg->name->name;
+                std::string childName = nodeName + "_VarDecl";
                 astDot << nodeName << "->" << childName << std::endl;
                 arg->printSelf(childName);
             }
@@ -76,7 +74,7 @@ namespace ast
         {
             for (auto arg : *(this->arg_list))
             {
-                std::string childName = nodeName + "_VarDecl_" + arg->name->name;
+                std::string childName = nodeName + "_VarDecl";
                 astDot << nodeName << "->" << childName << std::endl;
                 arg->printSelf(childName);
             }
@@ -94,7 +92,7 @@ namespace ast
         {
             for (auto arg : *(this->arg_list))
             {
-                std::string childName = nodeName + "_VarDecl_" + arg->name->name;
+                std::string childName = nodeName + "_VarDecl";
                 astDot << nodeName << "->" << childName << std::endl;
                 arg->printSelf(childName);
             }

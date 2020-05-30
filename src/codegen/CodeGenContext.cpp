@@ -52,10 +52,10 @@ llvm::Value *CodeGenContext::getValue(std::string name)
 {
     llvm::Function *nowFunction = currentFunction;
 
-    std::cerr << "Start getValue for " << name << std::endl;
-    std::cerr << "found:" << currentFunction->getValueSymbolTable()->lookup(name) << std::endl;
-    std::cerr << "main:" << mainFunction << std::endl;
-    std::cerr << "current:" << currentFunction << std::endl;
+    codegenOutput << "Start getValue for " << name << std::endl;
+    codegenOutput << "found:" << currentFunction->getValueSymbolTable()->lookup(name) << std::endl;
+    codegenOutput << "main:" << mainFunction << std::endl;
+    codegenOutput << "current:" << currentFunction << std::endl;
     if ((nowFunction->getValueSymbolTable()->lookup(name)) == NULL)
     {
         if (module->getGlobalVariable(name) == NULL)

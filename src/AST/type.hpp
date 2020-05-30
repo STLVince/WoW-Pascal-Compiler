@@ -3,9 +3,7 @@
 
 #include "node.hpp"
 #include "identifier.hpp"
-#include <fstream>
 
-extern std::ofstream astDot;
 namespace ast
 {
     enum class TypeName

@@ -5,6 +5,7 @@
 #include <stack>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
@@ -26,6 +27,9 @@
 #include <llvm/IR/ValueSymbolTable.h>
 
 #include "../utils/ast.hpp"
+
+extern std::ofstream astDot;
+extern std::ofstream codegenOutput;
 
 class GlobalLLVMContext
 {

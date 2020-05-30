@@ -7,9 +7,7 @@
 #include "expression.hpp"
 #include "type.hpp"
 #include "statement.hpp"
-#include <fstream>
 
-extern std::ofstream astDot;
 namespace ast
 {
     class Routine;
@@ -49,7 +47,7 @@ namespace ast
         {
             astDot << "digraph AST {" << std::endl;
             std::string nodeName = "ProgramNode";
-            
+
             // const decl part
             for (auto const_decl : *(this->const_part))
             {
@@ -74,11 +72,11 @@ namespace ast
             }
 
             // deal with program statements
-            for (auto body : *(this->routine_body))
+            for (int i = 0; i < this->routine_body.get()->size(); i++)
             {
-                std::string childName = nodeName + "_routineBody_" + body->name->name;
+                std::string childName = nodeName + "_routineBody" + std::to_string(i);
                 astDot << nodeName << "->" << childName << std::endl;
-                body->printSelf(childName);
+                (*(routine_body.get()))[i].get()->printSelf(childName);                
             }
             astDot << "}" << std::endl;
         }
@@ -125,12 +123,7 @@ namespace ast
         }*/
         void printSelf(std::string nodeName)
         {
-            for (auto t : *(this->type))
-            {
-                std::string childName = nodeName + "_TypeDecl_" + t->name->name;
-                astDot << nodeName << "->" << childName << std::endl;
-                t->printSelf(childName);
-            }
+            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << std::endl;
             for (auto arg : *(this->arg_list))
             {
                 std::string childName = nodeName + "_VarDecl_" + arg->name->name;

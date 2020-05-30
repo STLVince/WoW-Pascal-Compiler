@@ -1,5 +1,4 @@
 #include "../AST/declation.hpp"
-
 namespace ast
 {
     llvm::Value *TypeDef::code_gen(CodeGenContext &context)

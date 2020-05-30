@@ -4,7 +4,7 @@ namespace ast
 {
     llvm::Value *AssignmentStmt::code_gen(CodeGenContext &context)
     {
-        std::cerr << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
+        codegenOutput << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
         // get the lhs pointer, first cast
         // TODO handle array type
         // llvm::Value *lhs;
@@ -24,7 +24,7 @@ namespace ast
         auto lhs = this->lhs->GetPtr(context);
         if (std::dynamic_pointer_cast<FuncCall>(this->lhs))
         {
-            std::cerr << "It is a custom function call!" << std::endl;
+            codegenOutput << "It is a custom function call!" << std::endl;
         }
 
         auto *rhs = this->rhs->code_gen(context);
@@ -195,7 +195,7 @@ namespace ast
 
     llvm::Value *CaseStmt::code_gen(CodeGenContext &context)
     {
-        // std::cerr << "in case" << condition << std::endl;
+        // codegenOutput << "in case" << condition << std::endl;
         auto ret = then_stmt->code_gen(context);
         // std::cout << "in case 2" << condition << std::endl;
         llvm::BranchInst::Create(bexit, context.currentBlock());

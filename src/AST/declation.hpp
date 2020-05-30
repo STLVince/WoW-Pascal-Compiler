@@ -4,9 +4,6 @@
 #include "node.hpp"
 #include "identifier.hpp"
 #include "type.hpp"
-#include <fstream>
-
-extern std::ofstream astDot;
 
 namespace ast
 {

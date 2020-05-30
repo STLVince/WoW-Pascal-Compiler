@@ -5,7 +5,7 @@ namespace ast
     llvm::Value *Identifier::GetPtr(CodeGenContext &context)
     {
         // first find in local context
-        std::cerr << "finding " << name << std::endl;
+        codegenOutput << "finding " << name << std::endl;
         auto *value = context.getValue(name);
         if (!value)
         {

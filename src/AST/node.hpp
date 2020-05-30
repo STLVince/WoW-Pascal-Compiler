@@ -10,9 +10,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Instruction.h"
 #include "../codegen/CodeGenContext.h"
-#include <fstream>
 
-extern std::ofstream astDot;
 namespace ast
 {
     class Node

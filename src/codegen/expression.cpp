@@ -4,7 +4,7 @@ namespace ast
 {
     llvm::Value *FuncCall::code_gen(CodeGenContext &context)
     {
-        std::cerr << "FuncCall::code_gen: inside function call" << std::endl;
+        codegenOutput << "FuncCall::code_gen: inside function call" << std::endl;
 
         // look up the function name in the module
         auto *func = context.module->getFunction(id->name);
@@ -27,7 +27,7 @@ namespace ast
 
     llvm::Value *ProcCall::code_gen(CodeGenContext &context)
     {
-        std::cerr << "ProcCall::code_gen: inside procedure call" << std::endl;
+        codegenOutput << "ProcCall::code_gen: inside procedure call" << std::endl;
 
         // look up the procedure name in the module
         auto *func = context.module->getFunction(id->name);
@@ -50,7 +50,7 @@ namespace ast
 
     llvm::Value *SysFuncCall::code_gen(CodeGenContext &context)
     {
-        std::cerr << "SysFuncCall::code_gen: inside sysfunc" << std::endl;
+        codegenOutput << "SysFuncCall::code_gen: inside sysfunc" << std::endl;
         if (id->name == "WRITE" || id->name == "WRITELN")
         {
             for (auto &arg : *(this->arg_list))
@@ -101,7 +101,7 @@ namespace ast
 
     llvm::Value *BinaryOp::code_gen(CodeGenContext &context)
     {
-        std::cerr << "BinaryOp::code_gen: generating binary expression" << std::endl;
+        codegenOutput << "BinaryOp::code_gen: generating binary expression" << std::endl;
         auto *op1 = this->op1->code_gen(context);
         auto *op2 = this->op2->code_gen(context);
 
@@ -126,7 +126,7 @@ namespace ast
         // if either operand is of double type
         if (op1->getType()->isDoubleTy() || op2->getType()->isDoubleTy())
         {
-            std::cerr << "BinaryOp::code_gen: either op1 and op2 is double" << std::endl;
+            codegenOutput << "BinaryOp::code_gen: either op1 and op2 is double" << std::endl;
             // convert to double type
             if (!op1->getType()->isDoubleTy())
             {
@@ -171,7 +171,7 @@ namespace ast
         // both operands are boolean
         else if (op1->getType()->isIntegerTy(1) && op2->getType()->isIntegerTy(1))
         {
-            std::cerr << "BinaryOp::code_gen: either op1 and op2 are both boolean" << std::endl;
+            codegenOutput << "BinaryOp::code_gen: either op1 and op2 are both boolean" << std::endl;
 
             // get compare operator
             auto it = BTypeAlt.find(op);
@@ -203,7 +203,7 @@ namespace ast
         // both operands are interger
         else if (op1->getType()->isIntegerTy(32) && op2->getType()->isIntegerTy(32))
         {
-            std::cerr << "BinaryOp::code_gen: either op1 and op2 are both integer" << std::endl;
+            codegenOutput << "BinaryOp::code_gen: either op1 and op2 are both integer" << std::endl;
 
             // get compare operator
             auto it = BTypeAlt.find(op);
