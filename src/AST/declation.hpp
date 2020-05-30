@@ -31,7 +31,7 @@ namespace ast
         std::shared_ptr<TypeDecl> type = nullptr;
         std::shared_ptr<ConstType> val = nullptr;
 
-        ConstDecl(std::shared_ptr<Identifier> name, std::shared_ptr<ConstType> val) : name(name), val(val), type(new TypeDecl(val->getConstType())) {}
+        ConstDecl(std::shared_ptr<Identifier> name, std::shared_ptr<ConstType> val) : name(name), type(new TypeDecl(val->getConstType())), val(val) {}
         /*virtual std::vector<std::shared_ptr<Node>> getChildren()
         {
             std::vector<std::shared_ptr<Node>> list;
@@ -50,7 +50,7 @@ namespace ast
         std::shared_ptr<TypeDecl> type = nullptr;
         bool is_global;
 
-        VarDecl(Identifier *name, TypeDecl *type) : name(name), type(type) {}
+        VarDecl(std::shared_ptr<Identifier> name, std::shared_ptr<TypeDecl> type) : name(name), type(type) {}
         /*virtual std::vector<std::shared_ptr<Node>> getChildren()
         {
             std::vector<std::shared_ptr<Node>> list;

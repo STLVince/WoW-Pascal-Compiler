@@ -12,10 +12,10 @@ namespace ast
 {
     class Routine;
     using ConstDeclList = std::vector<std::shared_ptr<ConstDecl>>;
-    using TypeDeclList = std::vector<std::shared_ptr<TypeDecl>>;
+    using TypeDeclList = std::vector<std::shared_ptr<TypeDef>>;
     using VarDeclList = std::vector<std::shared_ptr<VarDecl>>;
     using RoutineList = std::vector<std::shared_ptr<Routine>>;
-    using StatementList = std::vector<std::shared_ptr<Statement>>;
+    //using StatementList = std::vector<std::shared_ptr<Statement>>;
     using NameList = std::vector<std::string>;
 
     class Program : public Node

@@ -88,7 +88,7 @@ namespace ast
         std::shared_ptr<Expression> op1, op2;
         OpType op;
 
-        BinaryOp(std::shared_ptr<Expression> op1, OpType op, std::shared_ptr<Expression> op2) : op1(op1), op(op), op2(op2) {}
+        BinaryOp(std::shared_ptr<Expression> op1, OpType op, std::shared_ptr<Expression> op2) : op1(op1), op2(op2), op(op) {}
         /*virtual std::vector<std::shared_ptr<Node>> getChildren()
         {
             std::vector<std::shared_ptr<Node>> list;

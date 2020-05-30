@@ -35,6 +35,22 @@ namespace ast
         ~Statement(){};
         //virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
+
+    class StatementList : public Statement{
+    public:
+        std::vector<std::shared_ptr<Statement>> list;
+        //virtual llvm::Value *CodeGen(CodeGenContext& context) {
+        //    for (auto stmt: list){
+         //       stmt->CodeGen(context);
+        //    }
+        //}
+        virtual std::vector<std::shared_ptr<Statement>> *get_list(){ return &list;}
+    };
+
+    template<typename T, typename... Args>
+    std::shared_ptr<T> make_node(Args&&... args) {
+        return std::make_shared<T>(std::forward<Args>(args)...);
+    }
 } // namespace ast
 
 #endif
