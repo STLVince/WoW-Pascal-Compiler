@@ -70,7 +70,10 @@ namespace ast
 
         // emit then code
         context.Builder.SetInsertPoint(then_stat);
-        then_stmt->code_gen(context);
+        for (auto stmt : (*then_stmt))
+        {
+            stmt->code_gen(context);
+        }
         context.Builder.CreateBr(end);
 
         // emit else code
@@ -78,7 +81,10 @@ namespace ast
         context.Builder.SetInsertPoint(else_stat);
         if (else_stmt != nullptr)
         {
-            else_stmt->code_gen(context);
+            for (auto stmt : (*else_stmt))
+            {
+                stmt->code_gen(context);
+            }
         }
         context.Builder.CreateBr(end);
 
@@ -100,13 +106,15 @@ namespace ast
         auto *cond = condition->code_gen(context);
         if (!cond->getType()->isIntegerTy(1))
         { // not boolean
-            // throw CodegenException("while statement not boolean");
             std::cerr << "while statement not boolean" << std::endl;
         }
-        context.Builder.CreateCondBr(cond, loop_stat, end); // true -> loop_stat, false -> end
+        context.Builder.CreateCondBr(cond, loop_stat, end);
 
         context.Builder.SetInsertPoint(loop_stat);
-        loop_stmt->code_gen(context);
+        for (auto stmt : (*loop_stmt))
+        {
+            stmt->code_gen(context);
+        }
         context.Builder.CreateBr(while_stat); // context -> statement
 
         function->getBasicBlockList().push_back(end); // end label
@@ -122,20 +130,22 @@ namespace ast
         llvm::BasicBlock *loopExitB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopExit", context.currentFunction);
 
         context.Builder.CreateBr(loopStmtB);
-
         context.Builder.SetInsertPoint(loopStmtB);
-        context.pushBlock(loopStmtB);
-        loop_stmt->code_gen(context);
+        // context.pushBlock(loopStmtB);
+        for (auto stmt : (*loop_stmt))
+        {
+            stmt->code_gen(context);
+        }
         context.Builder.CreateBr(loopEndB);
-        context.popBlock();
+        // context.popBlock();
 
-        context.pushBlock(loopEndB);
+        // context.pushBlock(loopEndB);
         context.Builder.SetInsertPoint(loopEndB);
         llvm::Value *test = this->condition->code_gen(context);
         llvm::Value *ret = context.Builder.CreateCondBr(test, loopExitB, loopStmtB);
-        context.popBlock();
+        // context.popBlock();
 
-        context.pushBlock(loopExitB);
+        // context.pushBlock(loopExitB);
         context.Builder.SetInsertPoint(loopExitB);
 
         return ret;
@@ -143,109 +153,94 @@ namespace ast
 
     llvm::Value *ForStmt::code_gen(CodeGenContext &context)
     {
-        llvm::BasicBlock *loopEntryB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "FORloopEntry", context.currentFunction);
-        llvm::BasicBlock *loopStmtB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "FORloopStmt", context.currentFunction);
-        llvm::BasicBlock *loopEndB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "FORloopEnd", context.currentFunction);
-        llvm::BasicBlock *loopExitB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "FORloopExit", context.currentFunction);
-
-        context.Builder.CreateBr(loopEntryB);
-        context.pushBlock(loopEntryB);
-        context.Builder.SetInsertPoint(loopEntryB);
-
-        // initial for
-        AssignmentStmt *assign = new AssignmentStmt(this->loop_var, this->start_val);
-        assign->code_gen(context);
-        context.Builder.CreateBr(loopStmtB);
-        context.popBlock();
-        context.pushBlock(loopStmtB);
-
-        // emit loop body code
-        context.Builder.SetInsertPoint(loopStmtB);
-        this->loop_stmt->code_gen(context);
-        context.Builder.CreateBr(loopEndB);
-        context.popBlock();
-        context.pushBlock(loopEndB);
-
-        // emit step code
-        context.Builder.SetInsertPoint(loopEndB);
-        auto int1 = new IntegerType(1);
-        BinaryOp *binOP;
-        if (this->direct == 1)
+        if (!loop_var->code_gen(context)->getType()->isIntegerTy(32))
         {
-            binOP = new BinaryOp(this->loop_var, OpType::PLUS, std::shared_ptr<IntegerType>(int1));
+            std::err << "ForStmt::code_gen: for loop identifier not integer" << std::endl;
         }
-        else
+        // create init statement
+        auto init = new AssignStmtAST(loop_var, start_val);
+
+        // create condition check
+        auto upto = direct == 1;
+        auto cond = new BinaryOp(upto ? BinaryOp::LE : BinaryOp::GE, loop_var, end_val);
+
+        // create iteration stmt
+        auto iter = new AssignStmtAST(identifier, new BinaryExprAST(upto ? BinaryOp::ADD : BinaryOp::SUB, identifier, new IntegerAST(1)));
+
+        // convert for stmt to while stmt
+        auto statementList = new StatementList();
+        for (auto stmt : *loop_stmt)
         {
-            binOP = new BinaryOp(this->loop_var, OpType::MINUS, std::shared_ptr<IntegerType>(int1));
+            statementList->push_back(stmt);
         }
-        AssignmentStmt *assign2 = new AssignmentStmt(this->loop_var, std::shared_ptr<BinaryOp>(binOP));
-        assign2->code_gen(context);
+        statementList->push_back(iter);
+        auto while_stmt = new WhileStmtAST(cond, statementList);
 
-        // emit test code
-        auto testGE = new BinaryOp(this->loop_var, OpType::GT, this->end_val);
-        auto test = testGE->code_gen(context);
-        auto ret = context.Builder.CreateCondBr(test, loopExitB, loopStmtB);
-
-        context.popBlock();
-        context.pushBlock(loopExitB);
-        context.Builder.SetInsertPoint(loopExitB);
-
-        return ret;
+        // generate code
+        init->code_gen(context);
+        while_stmt->code_gen(context);
+        return nullptr;
     }
 
     llvm::Value *CaseStmt::code_gen(CodeGenContext &context)
     {
-        // codegenOutput << "in case" << condition << std::endl;
-        auto ret = then_stmt->code_gen(context);
-        // std::cout << "in case 2" << condition << std::endl;
-        llvm::BranchInst::Create(bexit, context.currentBlock());
-        // std::cout << "in case 3" << condition << std::endl;
+        codegenOutput << "CaseStmt::code_gen: in case" << std::endl;
+        llvm::Value * ret;
+        for (auto stmt : (*then_stmt))
+        {
+            ret = stmt->code_gen(context);
+        }
         return ret;
     }
 
     llvm::Value *SwitchStmt::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "CaseStmt::code_gen: in switch" << std::endl;
         llvm::BasicBlock *bexit = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "exit", context.currentFunction);
 
-        std::vector<llvm::BasicBlock *> bblocks;
-        // std::cout << (*list)[1]->condition << std::endl;
-
+        // create basic blocks for each case
+        std::vector<llvm::BasicBlock *> basic_blocks;
         for (int i = 0; i < (list->size()); i++)
         {
-            auto bblock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "caseStmt", context.currentFunction);
-            bblocks.push_back(bblock);
+            auto basic_block = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "caseStmt", context.currentFunction);
+            basic_blocks.push_back(basic_block);
         }
 
-        for (int i = 0; i < bblocks.size() - 1; i++)
+        // code gen for each case condition
+        for (int i = 0; i < basic_blocks.size() - 1; i++)
         {
-            // std::cout << "in bblocks\n";
-            // std::cout << (*list)[0]->condition << "\n";
-            auto con = new BinaryOp(expression, OpType::EQ, (*list)[i]->condition);
+            auto cond = new BinaryOp(expression, OpType::EQ, (*list)[i]->condition);
             llvm::BasicBlock *bnext = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "next", context.currentFunction);
-            llvm::BranchInst::Create(bblocks[i], bnext, con->code_gen(context), context.currentBlock());
-            context.pushBlock(bnext);
+            // llvm::BranchInst::Create(basic_blocks[i], bnext, cond->code_gen(context), context.currentBlock());
+            context.Builder.CreateCondBr(cond->code_gen(context), basic_blocks[i], bnext);
+            // context.pushBlock(bnext);
+            context.Builder.SetInsertPoint(bnext);
         }
-        auto con = new BinaryOp(expression, OpType::EQ, (*list)[bblocks.size() - 1]->condition);
-        auto ret = llvm::BranchInst::Create(bblocks[bblocks.size() - 1], bexit, con->code_gen(context), context.currentBlock());
-        for (int i = 0; i < bblocks.size(); i++)
+
+        auto cond = new BinaryOp(expression, OpType::EQ, (*list)[basic_blocks.size() - 1]->condition);
+        // auto ret = llvm::BranchInst::Create(basic_blocks[basic_blocks.size() - 1], bexit, cond->code_gen(context), context.currentBlock());
+        auto ret = context.Builder.CreateCondBr(cond->code_gen(context), basic_blocks[basic_blocks.size() - 1], bexit);
+        // code gen for each case body
+        for (int i = 0; i < basic_blocks.size(); i++)
         {
-            context.pushBlock(bblocks[i]);
             auto cst = (*list)[i];
             cst->bexit = bexit;
             cst->code_gen(context);
-            // cout << "gggg~~~\n";
-            context.popBlock();
+            context.Builder.CreateBr(basic_blocks[i]);
         }
 
-        context.pushBlock(bexit);
+        // context.pushBlock(bexit);
+        context.Builder.SetInsertPoint(bexit);
 
         return ret;
     }
 
     llvm::Value *LabelStmt::code_gen(CodeGenContext &context)
     {
-        llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
-        context.pushBlock(context.labelBlock[label]);
+        // llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
+        llvm::CreateBr(context.labelBlock[label]);
+        // context.pushBlock(context.labelBlock[label]);
+        context.Builder.SetInsertPoint(context.labelBlock[label]);
         return statement->code_gen(context);
     }
 
@@ -253,8 +248,10 @@ namespace ast
     {
         llvm::Value *test = (new BooleanType("true"))->code_gen(context);
         llvm::BasicBlock *bafter = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "afterGoto", context.currentFunction);
-        auto ret = llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
-        context.pushBlock(bafter);
+        // auto ret = llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
+        auto ret = llvm::CreateBr(context.labelBlock[label]);
+        // context.pushBlock(bafter);
+        context.Builder.SetInsertPoint(bafter);
         return ret;
     }
 } // namespace ast

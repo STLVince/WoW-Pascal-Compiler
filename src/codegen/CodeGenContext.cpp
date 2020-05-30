@@ -92,25 +92,25 @@ bool CodeGenContext::setAlias(std::string key, llvm::Type *value)
     return true;
 }
 
-llvm::BasicBlock *CodeGenContext::currentBlock()
-{
-    return blocks.top()->block;
-};
+// llvm::BasicBlock *CodeGenContext::currentBlock()
+// {
+//     return blocks.top()->block;
+// };
 
-void CodeGenContext::pushBlock(llvm::BasicBlock *block)
-{
-    CodeGenBlock *newblock = new CodeGenBlock();
-    blocks.push(newblock);
-    blocks.top()->returnValue = nullptr;
-    blocks.top()->block = block;
-}
+// void CodeGenContext::pushBlock(llvm::BasicBlock *block)
+// {
+//     CodeGenBlock *newblock = new CodeGenBlock();
+//     blocks.push(newblock);
+//     blocks.top()->returnValue = nullptr;
+//     blocks.top()->block = block;
+// }
 
-void CodeGenContext::popBlock()
-{
-    CodeGenBlock *top = blocks.top();
-    blocks.pop();
-    delete top;
-}
+// void CodeGenContext::popBlock()
+// {
+//     CodeGenBlock *top = blocks.top();
+//     blocks.pop();
+//     delete top;
+// }
 
 llvm::Function *CodeGenContext::getPrintfPrototype()
 {
@@ -140,15 +140,16 @@ void CodeGenContext::generateCode(ast::Program &root)
     CodeGenContext::printf = getPrintfPrototype();
 
     // Push a new variable/block context
-    pushBlock(basicBlock);
+    // pushBlock(basicBlock);
+    Builder.SetInsertPoint(basicBlock);
     currentFunction = mainFunction;
     for (auto label : labels)
     {
         labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
     }
     root.code_gen(*this);
-    llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), currentBlock());
-    popBlock();
+    // llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), currentBlock());
+    // popBlock();
 
     // verify the main function
     llvm::verifyFunction(*mainFunction, &llvm::errs());
@@ -158,7 +159,7 @@ void CodeGenContext::generateCode(ast::Program &root)
     mpm->run(*module);
 
     // Print the bytecode in a human-readable format
-    // to see if our program compiled properly
+    // to see if the program compiled properly
     llvm::legacy::PassManager pm;
     pm.add(llvm::createPrintModulePass(llvm::outs()));
     //pm.run(*module);

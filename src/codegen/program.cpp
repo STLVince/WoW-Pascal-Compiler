@@ -80,10 +80,12 @@ namespace ast
         // record original function and block
         auto oldFunction = context.currentFunction;
         context.currentFunction = function;
-        auto oldBlock = context.currentBlock();
+        // auto oldBlock = context.currentBlock();
+        auto oldBlock = context.Builder.GetInsertBlock()
         context.functionParent[function] = oldFunction;
         // push block and start routine
-        context.pushBlock(block);
+        // context.pushBlock(block);
+        llvm::setInsertPoint(block);
 
         // initialize arguments
         llvm::Value *arg_value;
@@ -94,6 +96,7 @@ namespace ast
             arg_value = args_values++;
             arg_value->setName(arg->name->name.c_str());
             auto inst = new llvm::StoreInst(arg_value, context.getValue(arg->name->name), false, block);
+            // context.Builder.CreateStore(&arg, variable);
         }
         codegenOutput << "Routine::code_gen: argument part suc!\n";
 
@@ -102,7 +105,8 @@ namespace ast
         {
             codegenOutput << "Routine::code_gen: creating function return value declaration" << std::endl;
             // TODO check this
-            auto alloc = new llvm::AllocaInst(this->type->getType(), 4, this->name->name.c_str(), context.currentBlock());
+            // auto alloc = new llvm::AllocaInst(this->type->getType(), 4, this->name->name.c_str(), context.currentBlock());
+            auto *alloc = context.Builder.CreateAlloca(this->type->getType());
             // context.insert(this->routine_name->name) = alloc;
         }
         codegenOutput << "Routine::code_gen: function part success!\n";
@@ -133,21 +137,26 @@ namespace ast
         if (this->isFunction())
         {
             codegenOutput << "Routine::code_gen: generating return value for function" << std::endl;
-            auto load_ret = new llvm::LoadInst(context.getValue(this->name->name), "", false, context.currentBlock());
-            llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), load_ret, context.currentBlock());
+            // auto load_ret = new llvm::LoadInst(context.getValue(this->name->name), "", false, context.currentBlock());
+            // llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), load_ret, context.currentBlock());
+            auto *local = context.getValue(this->name->name);
+            auto *ret = context.Builder.CreateLoad(local);
+            context.GetBuilder().CreateRet(ret);
         }
         else if (this->isProcedure())
         {
             codegenOutput << "Routine::code_gen: generating return void for procedure" << std::endl;
-            llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), context.currentBlock());
+            // llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), context.currentBlock());
+            context.Builder.CreateRetVoid();
         }
 
         // restore current function and block
-        while (context.currentBlock() != oldBlock)
-        {
-            context.popBlock();
-        }
-        context.currentFunction = oldFunction;
+        // while (context.currentBlock() != oldBlock)
+        // {
+        //     context.popBlock();
+        // }
+        llvm::SetInsertPoint(oldBlock);
+        context.currentFunction = oldFunction;        
 
         // verify the function
         llvm::verifyFunction(*function, &llvm::errs());

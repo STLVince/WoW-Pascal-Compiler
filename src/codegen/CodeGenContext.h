@@ -48,19 +48,19 @@ public:
     void operator=(GlobalLLVMContext const &) = delete;
 };
 
-class CodeGenBlock
-{
-public:
-    llvm::BasicBlock *block;
-    llvm::Value *returnValue;
-    CodeGenBlock *parent;
-    std::map<std::string, llvm::Value *> locals;
-};
+// class CodeGenBlock
+// {
+// public:
+//     llvm::BasicBlock *block;
+//     llvm::Value *returnValue;
+//     CodeGenBlock *parent;
+//     std::map<std::string, llvm::Value *> locals;
+// };
 
 class CodeGenContext
 {
 private:
-    std::stack<CodeGenBlock *> blocks;
+    // std::stack<CodeGenBlock *> blocks;
 
 public:
     llvm::Module *module;
@@ -83,9 +83,9 @@ public:
     void putValue(std::string name, llvm::Value *value);
     llvm::Type *getAlias(std::string key);
     bool setAlias(std::string key, llvm::Type *value);
-    llvm::BasicBlock *currentBlock();
-    void pushBlock(llvm::BasicBlock *block);
-    void popBlock();
+    // llvm::BasicBlock *currentBlock();
+    // void pushBlock(llvm::BasicBlock *block);
+    // void popBlock();
     llvm::Function *getPrintfPrototype();
     
     void generateCode(ast::Program& root);
