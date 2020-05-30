@@ -1,7 +1,121 @@
 #include "../AST/statement.hpp"
+#include "../AST/identifier.hpp"
 
 namespace ast
 {
+    void AssignmentStmt::printSelf(std::string nodeName)
+    {
+        astDot << nodeName << "->" << nodeName + "_" + lhs->name << std::endl;
+        std::string childName = nodeName + "_rhs";
+        astDot << nodeName << "->" << childName << std::endl;
+        rhs->printSelf(childName);
+    }
+
+    void IfStmt::printSelf(std::string nodeName)
+    {
+        std::string condName = nodeName + "_condition";
+        astDot << nodeName << "->" << condName << std::endl;
+        condition->printSelf(condName);
+        std::string thenName = nodeName + "_then";
+        astDot << nodeName << "->" << thenName << std::endl;
+        for (unsigned int i = 0; i < then_stmt.get()->get_list()->size(); i++)
+        {
+            std::string childName = nodeName + "_then" + std::to_string(i);
+            astDot << nodeName << "->" << childName << std::endl;
+            (*(then_stmt.get()->get_list()))[i].get()->printSelf(childName);
+        }
+        for (unsigned int i = 0; i < else_stmt.get()->get_list()->size(); i++)
+        {
+            std::string childName = nodeName + "_else" + std::to_string(i);
+            astDot << nodeName << "->" << childName << std::endl;
+            (*(else_stmt.get()->get_list()))[i].get()->printSelf(childName);
+        }
+    }
+
+    void WhileStmt::printSelf(std::string nodeName)
+    {
+        std::string condName = nodeName + "_condition";
+        astDot << nodeName << "->" << condName << std::endl;
+        condition->printSelf(condName);
+        for (unsigned int i = 0; i < loop_stmt.get()->get_list()->size(); i++)
+        {
+            std::string childName = nodeName + "_loop" + std::to_string(i);
+            astDot << nodeName << "->" << childName << std::endl;
+            (*(loop_stmt.get()->get_list()))[i].get()->printSelf(childName);
+        }
+    }
+
+    void RepeatStmt::printSelf(std::string nodeName)
+    {
+        std::string condName = nodeName + "_condition";
+        astDot << nodeName << "->" << condName << std::endl;
+        condition->printSelf(condName);
+        for (unsigned int i = 0; i < loop_stmt.get()->get_list()->size(); i++)
+        {
+            std::string childName = nodeName + "_loop" + std::to_string(i);
+            astDot << nodeName << "->" << childName << std::endl;
+            (*(loop_stmt.get()->get_list()))[i].get()->printSelf(childName);
+        }
+    }
+
+    void ForStmt::printSelf(std::string nodeName)
+    {
+        std::string loop_varName = nodeName + "_loop_var";
+        astDot << nodeName << "->" << loop_varName << std::endl;
+        loop_var->printSelf(loop_varName);
+        std::string start_valName = nodeName + "_start_val";
+        astDot << nodeName << "->" << start_valName << std::endl;
+        start_val->printSelf(start_valName);
+        std::string end_valName = nodeName + "_end_val";
+        astDot << nodeName << "->" << end_valName << std::endl;
+        end_val->printSelf(end_valName);
+        for (unsigned int i = 0; i < loop_stmt.get()->get_list()->size(); i++)
+        {
+            std::string childName = nodeName + "_loop" + std::to_string(i);
+            astDot << nodeName << "->" << childName << std::endl;
+            (*(loop_stmt.get()->get_list()))[i].get()->printSelf(childName);
+        }
+    }
+
+    void CaseStmt::printSelf(std::string nodeName)
+    {
+        std::string condName = nodeName + "_condition";
+        astDot << nodeName << "->" << condName << std::endl;
+        condition->printSelf(condName);
+        for (unsigned int i = 0; i < this->then_stmt.get()->get_list()->size(); i++)
+        {
+            std::string childName = nodeName + "_then" + std::to_string(i);
+            astDot << nodeName << "->" << childName << std::endl;
+            (*(then_stmt.get()->get_list()))[i].get()->printSelf(childName);
+        }
+    }
+
+    void SwitchStmt::printSelf(std::string nodeName)
+    {
+        std::string exprName = nodeName + "_expression";
+        astDot << nodeName << "->" << exprName << std::endl;
+        expression->printSelf(exprName);
+        for (unsigned int i = 0; i < list.get()->size(); i++)
+        {
+            std::string caseName = nodeName + "_case" + std::to_string(i);
+            astDot << nodeName << "->" << caseName << std::endl;
+            (*(list.get()))[i].get()->printSelf(caseName);
+        }
+    }
+
+    void LabelStmt::printSelf(std::string nodeName)
+    {
+        std::string stmtName = nodeName + "_statement";
+        astDot << nodeName << "->" << stmtName << std::endl;
+        statement->printSelf(stmtName);
+    }
+
+    void GotoStmt::printSelf(std::string nodeName)
+    {
+        std::string labelName = nodeName + "_label" + std::to_string(label);
+        astDot << nodeName << "->" << labelName << std::endl;
+    }
+
     llvm::Value *AssignmentStmt::code_gen(CodeGenContext &context)
     {
         codegenOutput << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
@@ -22,10 +136,10 @@ namespace ast
         //         std::cerr << "assignment left argument not a identifier.\n" << std::endl;
         // }
         auto lhs = this->lhs->GetPtr(context);
-        if (std::dynamic_pointer_cast<FuncCall>(this->lhs))
-        {
-            codegenOutput << "It is a custom function call!" << std::endl;
-        }
+        // if (std::dynamic_pointer_cast<FuncCall>(this->lhs))
+        // {
+        //     codegenOutput << "It is a custom function call!" << std::endl;
+        // }
 
         auto *rhs = this->rhs->code_gen(context);
         //rhs = context.Builder.CreateLoad(rhs);
@@ -70,7 +184,7 @@ namespace ast
 
         // emit then code
         context.Builder.SetInsertPoint(then_stat);
-        for (auto stmt : (*then_stmt))
+        for (auto stmt : *(then_stmt->get_list()))
         {
             stmt->code_gen(context);
         }
@@ -81,7 +195,7 @@ namespace ast
         context.Builder.SetInsertPoint(else_stat);
         if (else_stmt != nullptr)
         {
-            for (auto stmt : (*else_stmt))
+            for (auto stmt : *(else_stmt->get_list()))
             {
                 stmt->code_gen(context);
             }
@@ -91,6 +205,7 @@ namespace ast
         // emit merge block
         function->getBasicBlockList().push_back(end);
         context.Builder.SetInsertPoint(end);
+        return nullptr;
     }
 
     llvm::Value *WhileStmt::code_gen(CodeGenContext &context)
@@ -111,7 +226,7 @@ namespace ast
         context.Builder.CreateCondBr(cond, loop_stat, end);
 
         context.Builder.SetInsertPoint(loop_stat);
-        for (auto stmt : (*loop_stmt))
+        for (auto stmt : *(loop_stmt->get_list()))
         {
             stmt->code_gen(context);
         }
@@ -132,7 +247,7 @@ namespace ast
         context.Builder.CreateBr(loopStmtB);
         context.Builder.SetInsertPoint(loopStmtB);
         // context.pushBlock(loopStmtB);
-        for (auto stmt : (*loop_stmt))
+        for (auto stmt : *(loop_stmt->get_list()))
         {
             stmt->code_gen(context);
         }
@@ -155,26 +270,27 @@ namespace ast
     {
         if (!loop_var->code_gen(context)->getType()->isIntegerTy(32))
         {
-            std::err << "ForStmt::code_gen: for loop identifier not integer" << std::endl;
+            std::cerr << "ForStmt::code_gen: for loop identifier not integer" << std::endl;
         }
         // create init statement
-        auto init = new AssignStmtAST(loop_var, start_val);
+        auto init = make_node<AssignmentStmt>(loop_var, start_val);
 
         // create condition check
         auto upto = direct == 1;
-        auto cond = new BinaryOp(upto ? BinaryOp::LE : BinaryOp::GE, loop_var, end_val);
+        auto cond = make_node<BinaryOp>(loop_var, upto ? OpType::LE : OpType::GE, end_val);
 
         // create iteration stmt
-        auto iter = new AssignStmtAST(identifier, new BinaryExprAST(upto ? BinaryOp::ADD : BinaryOp::SUB, identifier, new IntegerAST(1)));
+        auto iter = make_node<AssignmentStmt>(loop_var, make_node<BinaryOp>(loop_var, upto ? OpType::PLUS : OpType::MINUS, make_node<IntegerType>(1)));
 
         // convert for stmt to while stmt
-        auto statementList = new StatementList();
-        for (auto stmt : *loop_stmt)
+
+        auto statementList = make_node<StatementList>();
+        for (auto stmt : *(loop_stmt->get_list()))
         {
-            statementList->push_back(stmt);
+            statementList->get_list()->push_back(stmt);
         }
-        statementList->push_back(iter);
-        auto while_stmt = new WhileStmtAST(cond, statementList);
+        statementList->get_list()->push_back(iter);
+        auto while_stmt = make_node<WhileStmt>(cond, statementList);
 
         // generate code
         init->code_gen(context);
@@ -185,8 +301,8 @@ namespace ast
     llvm::Value *CaseStmt::code_gen(CodeGenContext &context)
     {
         codegenOutput << "CaseStmt::code_gen: in case" << std::endl;
-        llvm::Value * ret;
-        for (auto stmt : (*then_stmt))
+        llvm::Value *ret;
+        for (auto stmt : *(then_stmt->get_list()))
         {
             ret = stmt->code_gen(context);
         }
@@ -200,14 +316,14 @@ namespace ast
 
         // create basic blocks for each case
         std::vector<llvm::BasicBlock *> basic_blocks;
-        for (int i = 0; i < (list->size()); i++)
+        for (unsigned int i = 0; i < (list->size()); i++)
         {
             auto basic_block = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "caseStmt", context.currentFunction);
             basic_blocks.push_back(basic_block);
         }
 
         // code gen for each case condition
-        for (int i = 0; i < basic_blocks.size() - 1; i++)
+        for (unsigned int i = 0; i < basic_blocks.size() - 1; i++)
         {
             auto cond = new BinaryOp(expression, OpType::EQ, (*list)[i]->condition);
             llvm::BasicBlock *bnext = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "next", context.currentFunction);
@@ -221,7 +337,7 @@ namespace ast
         // auto ret = llvm::BranchInst::Create(basic_blocks[basic_blocks.size() - 1], bexit, cond->code_gen(context), context.currentBlock());
         auto ret = context.Builder.CreateCondBr(cond->code_gen(context), basic_blocks[basic_blocks.size() - 1], bexit);
         // code gen for each case body
-        for (int i = 0; i < basic_blocks.size(); i++)
+        for (unsigned int i = 0; i < basic_blocks.size(); i++)
         {
             auto cst = (*list)[i];
             cst->bexit = bexit;
@@ -238,7 +354,7 @@ namespace ast
     llvm::Value *LabelStmt::code_gen(CodeGenContext &context)
     {
         // llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
-        llvm::CreateBr(context.labelBlock[label]);
+        context.Builder.CreateBr(context.labelBlock[label]);
         // context.pushBlock(context.labelBlock[label]);
         context.Builder.SetInsertPoint(context.labelBlock[label]);
         return statement->code_gen(context);
@@ -249,7 +365,7 @@ namespace ast
         llvm::Value *test = (new BooleanType("true"))->code_gen(context);
         llvm::BasicBlock *bafter = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "afterGoto", context.currentFunction);
         // auto ret = llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
-        auto ret = llvm::CreateBr(context.labelBlock[label]);
+        auto ret = context.Builder.CreateBr(context.labelBlock[label]);
         // context.pushBlock(bafter);
         context.Builder.SetInsertPoint(bafter);
         return ret;

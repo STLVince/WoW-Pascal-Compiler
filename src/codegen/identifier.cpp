@@ -2,6 +2,10 @@
 
 namespace ast
 {
+    void printSelf(std::string nodeName) 
+    {
+    }
+
     llvm::Value *Identifier::GetPtr(CodeGenContext &context)
     {
         // first find in local context

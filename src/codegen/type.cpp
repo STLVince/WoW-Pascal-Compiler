@@ -3,6 +3,7 @@ namespace ast
 {
     llvm::Value *TypeDecl::code_gen(CodeGenContext &context)
     {
+        return nullptr;
     }
 
     llvm::Type *TypeDecl::getType()
@@ -47,6 +48,7 @@ namespace ast
             // throw CodegenException("Unsupported type3");
             std::cerr << "Unsupported type3" << std::endl;
         }
+        return nullptr;
     }
 
     // llvm::Value *ArrayType::code_gen(CodeGenContext &context)

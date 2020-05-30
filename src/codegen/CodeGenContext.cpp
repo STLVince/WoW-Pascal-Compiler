@@ -8,6 +8,7 @@
 #include <llvm/Transforms/Utils.h>
 
 #include "CodeGenContext.h"
+#include "../AST/program.hpp"
 
 CodeGenContext::CodeGenContext() : Builder(GlobalLLVMContext::getGlobalContext())
 {

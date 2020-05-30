@@ -4,9 +4,11 @@
 #include "node.hpp"
 #include "identifier.hpp"
 #include "declation.hpp"
+#include "../codegen/CodeGenContext.h"
 
 namespace ast
 {
+    class Identifier;
     using ExpressionList = std::vector<std::shared_ptr<Expression>>;
 
     class FuncCall : public Expression, public Statement
@@ -25,16 +27,8 @@ namespace ast
                 list.push_back((std::shared_ptr<Node>)i);
             return list;
         }*/
-        void printSelf(std::string nodeName)
-        {
-            for (auto arg : *(this->arg_list))
-            {
-                std::string childName = nodeName + "_VarDecl";
-                astDot << nodeName << "->" << childName << std::endl;
-                arg->printSelf(childName);
-            }
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class ProcCall : public Statement
@@ -53,16 +47,8 @@ namespace ast
                 list.push_back((std::shared_ptr<Node>)i);
             return list;
         }*/
-        void printSelf(std::string nodeName)
-        {
-            for (auto arg : *(this->arg_list))
-            {
-                std::string childName = nodeName + "_VarDecl";
-                astDot << nodeName << "->" << childName << std::endl;
-                arg->printSelf(childName);
-            }
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class SysFuncCall : public FuncCall
@@ -70,16 +56,8 @@ namespace ast
     public:
         SysFuncCall(std::shared_ptr<Identifier> id) : FuncCall(id) {}
         SysFuncCall(std::shared_ptr<Identifier> id, std::shared_ptr<ExpressionList> arg_list) : FuncCall(id, arg_list) {}
-        void printSelf(std::string nodeName)
-        {
-            for (auto arg : *(this->arg_list))
-            {
-                std::string childName = nodeName + "_VarDecl";
-                astDot << nodeName << "->" << childName << std::endl;
-                arg->printSelf(childName);
-            }
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class SysProcCall : public ProcCall
@@ -88,16 +66,8 @@ namespace ast
         SysProcCall(std::shared_ptr<Identifier> id) : ProcCall(id) {}
         SysProcCall(std::shared_ptr<Identifier> id, std::shared_ptr<ExpressionList> arg_list) : ProcCall(id, arg_list) {}
         //llvm::Value *SysProc_write(CodeGenContext &context, bool writeln);
-        void printSelf(std::string nodeName)
-        {
-            for (auto arg : *(this->arg_list))
-            {
-                std::string childName = nodeName + "_VarDecl";
-                astDot << nodeName << "->" << childName << std::endl;
-                arg->printSelf(childName);
-            }
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     enum class OpType
@@ -133,10 +103,8 @@ namespace ast
             list.push_back((std::shared_ptr<Node>)op2);
             return list;
         }*/
-        void printSelf(std::string nodeName)
-        {
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
 

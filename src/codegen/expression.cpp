@@ -1,7 +1,52 @@
 #include "../AST/expression.hpp"
+#include "../AST/identifier.hpp"
 
 namespace ast
 {
+    void FuncCall::printSelf(std::string nodeName)
+    {
+        for (auto arg : *(this->arg_list))
+        {
+            std::string childName = nodeName + "_VarDecl";
+            astDot << nodeName << "->" << childName << std::endl;
+            arg->printSelf(childName);
+        }
+    }
+
+    void ProcCall::printSelf(std::string nodeName)
+    {
+        for (auto arg : *(this->arg_list))
+        {
+            std::string childName = nodeName + "_VarDecl";
+            astDot << nodeName << "->" << childName << std::endl;
+            arg->printSelf(childName);
+        }
+    }
+
+    void SysFuncCall::printSelf(std::string nodeName)
+    {
+        for (auto arg : *(this->arg_list))
+        {
+            std::string childName = nodeName + "_VarDecl";
+            astDot << nodeName << "->" << childName << std::endl;
+            arg->printSelf(childName);
+        }
+    }
+
+    void SysProcCall::printSelf(std::string nodeName)
+    {
+        for (auto arg : *(this->arg_list))
+        {
+            std::string childName = nodeName + "_VarDecl";
+            astDot << nodeName << "->" << childName << std::endl;
+            arg->printSelf(childName);
+        }
+    }
+
+    void BinaryOp::printSelf(std::string nodeName)
+    {
+    }
+
     llvm::Value *FuncCall::code_gen(CodeGenContext &context)
     {
         codegenOutput << "FuncCall::code_gen: inside function call" << std::endl;
@@ -68,16 +113,16 @@ namespace ast
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
                     func_args.push_back(value);
                 }
-                else if (value->getType()->isArrayTy())
-                {
-                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
-                    //func_args.push_back(value);
-                    auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
-                    auto *value2 = real_arg->GetPtr(context);
-                    func_args.push_back(value2);
-                    //std::string mystr2 = value2->getName().str();
-                    //func_args.push_back(context.Builder.CreateGlobalStringPtr(mystr2));
-                }
+                // else if (value->getType()->isArrayTy())
+                // {
+                //     func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
+                //     //func_args.push_back(value);
+                //     auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
+                //     auto *value2 = real_arg->GetPtr(context);
+                //     func_args.push_back(value2);
+                //     //std::string mystr2 = value2->getName().str();
+                //     //func_args.push_back(context.Builder.CreateGlobalStringPtr(mystr2));
+                // }
                 //   else if (value->getType()->)
                 // TODO: string support
                 else
@@ -93,10 +138,12 @@ namespace ast
             // }
             return nullptr;
         }
+        return nullptr;
     }
 
     llvm::Value *SysProcCall::code_gen(CodeGenContext &context)
     {
+        return nullptr;
     }
 
     llvm::Value *BinaryOp::code_gen(CodeGenContext &context)
@@ -106,22 +153,20 @@ namespace ast
         auto *op2 = this->op2->code_gen(context);
 
         // compare operator mapping
-        std::map<OpType, llvm::CmpInst::Predicate> BTypeAlt = {            
+        std::map<OpType, llvm::CmpInst::Predicate> BTypeAlt = {
             {OpType::EQ, llvm::CmpInst::ICMP_EQ},
             {OpType::NE, llvm::CmpInst::ICMP_NE},
             {OpType::LT, llvm::CmpInst::ICMP_SLT},
             {OpType::GT, llvm::CmpInst::ICMP_SGT},
             {OpType::LE, llvm::CmpInst::ICMP_SLE},
-            {OpType::GE, llvm::CmpInst::ICMP_SGE}            
-            };
+            {OpType::GE, llvm::CmpInst::ICMP_SGE}};
         std::map<OpType, llvm::CmpInst::Predicate> FTypeAlt = {
             {OpType::EQ, llvm::CmpInst::FCMP_OEQ},
             {OpType::NE, llvm::CmpInst::FCMP_ONE},
             {OpType::LT, llvm::CmpInst::FCMP_OLT},
             {OpType::GT, llvm::CmpInst::FCMP_OGT},
             {OpType::LE, llvm::CmpInst::FCMP_OLE},
-            {OpType::GE, llvm::CmpInst::FCMP_OGE}
-            };
+            {OpType::GE, llvm::CmpInst::FCMP_OGE}};
 
         // if either operand is of double type
         if (op1->getType()->isDoubleTy() || op2->getType()->isDoubleTy())
@@ -253,5 +298,6 @@ namespace ast
             }
             return context.Builder.CreateBinOp(binop, op1, op2);
         }
+        return nullptr;
     }
 } // namespace ast

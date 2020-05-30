@@ -2,6 +2,7 @@
 #define _AST_IDENTIFIER_HPP_
 
 #include "node.hpp"
+#include "../codegen/CodeGenContext.h"
 
 namespace ast
 {
@@ -12,8 +13,9 @@ namespace ast
         
         Identifier(const std::string &name) : name(name) {}
         //Identifier(const char* ptr) : name(*(new std::string(ptr))) {}
-        void printSelf(std::string nodeName) {}
+        ~Identifier() {};
         llvm::Value *GetPtr(CodeGenContext &context);
+        void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast

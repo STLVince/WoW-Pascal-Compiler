@@ -4,9 +4,14 @@
 #include "node.hpp"
 #include "identifier.hpp"
 #include "type.hpp"
+#include "../codegen/CodeGenContext.h"
 
 namespace ast
 {
+    class Identifier;
+    class TypeDecl;
+    class ConstType;
+
     class TypeDef : public Statement
     {
     public:
@@ -21,11 +26,8 @@ namespace ast
             list.push_back(type);
             return list;
         }*/
-        void printSelf(std::string nodeName)
-        {
-            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << std::endl;
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class ConstDecl : public Statement
@@ -35,7 +37,7 @@ namespace ast
         std::shared_ptr<TypeDecl> type = nullptr;
         std::shared_ptr<ConstType> val = nullptr;
 
-        ConstDecl(std::shared_ptr<Identifier> name, std::shared_ptr<ConstType> val) : name(name), type(new TypeDecl(val->getConstType())), val(val) {}
+        ConstDecl(std::shared_ptr<Identifier> name, std::shared_ptr<ConstType> val);
         /*virtual std::vector<std::shared_ptr<Node>> getChildren()
         {
             std::vector<std::shared_ptr<Node>> list;
@@ -44,11 +46,8 @@ namespace ast
             list.push_back(val);
             return list;
         }*/
-        void printSelf(std::string nodeName)
-        {
-            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << "_" << static_cast<std::underlying_type<TypeName>::type>(val->type) << std::endl;
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class VarDecl : public Statement
@@ -66,12 +65,8 @@ namespace ast
             list.push_back(type);
             return list;
         }*/
-        void printSelf(std::string nodeName)
-        {
-            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type);
-            astDot << "_" << (is_global ? "global" : "not_global") << std::endl;
-        }
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
 

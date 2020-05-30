@@ -2,6 +2,7 @@
 #define _AST_NODE_HPP_
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <map>
 #include <list>
@@ -9,14 +10,16 @@
 #include <memory>
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Instruction.h"
-#include "../codegen/CodeGenContext.h"
+
+class CodeGenContext;
+extern std::ofstream astDot;
 
 namespace ast
 {
     class Node
     {
     public:
-        virtual ~Node(){};
+        ~Node(){};
         //virtual std::vector<std::shared_ptr<Node>> getChildren() { return *(new std::vector<std::shared_ptr<Node>>()); }
         virtual void printSelf(std::string nodeName) = 0;
         virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
@@ -47,8 +50,23 @@ namespace ast
         //    for (auto stmt: list){
          //       stmt->CodeGen(context);
         //    }
-        //}
-        virtual std::vector<std::shared_ptr<Statement>> *get_list(){ return &list;}
+        //}        
+        std::vector<std::shared_ptr<Statement>> *get_list(){ return &list;}
+        void printSelf(std::string nodeName)
+        {
+            for (auto stmt : list)
+            {
+                stmt->printSelf(nodeName);
+            }
+        }
+        llvm::Value *code_gen(CodeGenContext &context)
+        {
+            for (auto stmt : list)
+            {
+                stmt->code_gen(context);
+            }
+            return nullptr;
+        }
     };
 
     template<typename T, typename... Args>

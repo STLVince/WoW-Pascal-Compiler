@@ -26,10 +26,14 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
-#include "../utils/ast.hpp"
+// #include "../utils/ast.hpp"
 
 extern std::ofstream astDot;
 extern std::ofstream codegenOutput;
+
+namespace ast {
+	class Program;
+}
 
 class GlobalLLVMContext
 {
@@ -71,7 +75,7 @@ public:
     std::map<llvm::Function *, llvm::Function *> functionParent;    
     std::map<std::string, llvm::Type *> aliases;
     // std::vector<std::string> traces;
-    static std::vector<int> labels;
+    std::vector<int> labels;
     llvm::BasicBlock* labelBlock[10000];
     // bool is_subroutine = false;
     std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;

@@ -271,7 +271,11 @@ proc_stmt: ID                           { $$ = ast::make_node<ast::ProcCall>(ast
     | READ LP factor RP {};
 
 if_stmt: IF expression THEN stmt else_clause {
-        $$ = ast::make_node<ast::IfStmt>($2, $4, $5);
+        auto temp_then = ast::make_node<ast::StatementList>();
+        temp_then->get_list()->push_back($4);
+        auto temp_else = ast::make_node<ast::StatementList>();
+        temp_else->get_list()->push_back($5);
+        $$ = ast::make_node<ast::IfStmt>($2, temp_then, temp_else);
     };
 
 else_clause: ELSE stmt { $$ = $2; }
@@ -282,14 +286,20 @@ repeat_stmt: REPEAT stmt_list UNTIL expression {
     };
 
 while_stmt: WHILE expression DO stmt {
-        $$ = ast::make_node<ast::WhileStmt>($2, $4);
+        auto temp = ast::make_node<ast::StatementList>();
+        temp->get_list()->push_back($4);
+        $$ = ast::make_node<ast::WhileStmt>($2, temp);
     };
 
 for_stmt: FOR ID ASSIGN expression TO expression DO stmt {
-        $$ = ast::make_node<ast::ForStmt>(1, ast::make_node<ast::Identifier>($2), $4, $6, $8);
+        auto temp = ast::make_node<ast::StatementList>();
+        temp->get_list()->push_back($8);
+        $$ = ast::make_node<ast::ForStmt>(1, ast::make_node<ast::Identifier>($2), $4, $6, temp);
     }
     | FOR ID ASSIGN expression DOWNTO expression DO stmt {
-        $$ = ast::make_node<ast::ForStmt>(-1, ast::make_node<ast::Identifier>($2), $4, $6, $8);
+        auto temp = ast::make_node<ast::StatementList>();
+        temp->get_list()->push_back($8);
+        $$ = ast::make_node<ast::ForStmt>(-1, ast::make_node<ast::Identifier>($2), $4, $6, temp);
     };
 
 case_stmt: CASE expression OF case_expr_list END {
@@ -305,10 +315,14 @@ case_expr_list: case_expr_list case_expr {
     };
 
 case_expr: const_value COLON stmt SEMI  {
-        $$ = ast::make_node<ast::CaseStmt>($1, $3);
+        auto temp = ast::make_node<ast::StatementList>();
+        temp->get_list()->push_back($3);
+        $$ = ast::make_node<ast::CaseStmt>($1, temp);
     }
     | ID COLON stmt SEMI {
-        $$ = ast::make_node<ast::CaseStmt>(ast::make_node<ast::Identifier>($1), $3);
+        auto temp = ast::make_node<ast::StatementList>();
+        temp->get_list()->push_back($3);
+        $$ = ast::make_node<ast::CaseStmt>(ast::make_node<ast::Identifier>($1), temp);
     };
 
 goto_stmt: GOTO INTEGER { $$ = ast::make_node<ast::GotoStmt>($2); };

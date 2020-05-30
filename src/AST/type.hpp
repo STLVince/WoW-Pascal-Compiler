@@ -3,6 +3,7 @@
 
 #include "node.hpp"
 #include "identifier.hpp"
+#include "../codegen/CodeGenContext.h"
 
 namespace ast
 {
@@ -29,7 +30,7 @@ namespace ast
         ~TypeDecl(){};
         void printSelf(std::string nodeName) {}
         llvm::Type *getType();
-        virtual llvm::Value *code_gen(CodeGenContext &context);
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class ArrayType : public TypeDecl
@@ -58,7 +59,7 @@ namespace ast
         int val;
 
         IntegerType(int val) : val(val) {}
-        virtual TypeName getConstType()
+        TypeName getConstType()
         {
             return TypeName::INTEGER;
         }
@@ -72,7 +73,7 @@ namespace ast
         double val;
 
         RealType(double val) : val(val) {}
-        virtual TypeName getConstType()
+        TypeName getConstType()
         {
             return TypeName::REAL;
         }
@@ -87,7 +88,7 @@ namespace ast
         bool val;
 
         BooleanType(bool val) : val(val) {}
-        virtual TypeName getConstType()
+        TypeName getConstType()
         {
             return TypeName::BOOLEAN;
         }
@@ -102,7 +103,7 @@ namespace ast
 
         StringType(const char *val) : val(val) {}
         StringType(const std::string val) : val(val) {}
-        virtual TypeName getConstType()
+        TypeName getConstType()
         {
             return TypeName::STRING;
         }
