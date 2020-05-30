@@ -43,10 +43,10 @@ CodeGenContext::CodeGenContext() : Builder(GlobalLLVMContext::getGlobalContext()
     mpm->add(llvm::createFunctionInliningPass());
 }
 
-std::map<std::string, llvm::Value *> &CodeGenContext::locals()
-{
-    return blocks.top()->locals;
-}
+// std::map<std::string, llvm::Value *> &CodeGenContext::locals()
+// {
+//     return blocks.top()->locals;
+// }
 
 llvm::Value *CodeGenContext::getValue(std::string name)
 {
@@ -68,10 +68,10 @@ llvm::Value *CodeGenContext::getValue(std::string name)
     return nowFunction->getValueSymbolTable()->lookup(name);
 }
 
-void CodeGenContext::putValue(std::string name, llvm::Value *value)
-{
-    blocks.top()->locals.insert(make_pair(name, value));
-}
+// void CodeGenContext::putValue(std::string name, llvm::Value *value)
+// {
+//     blocks.top()->locals.insert(make_pair(name, value));
+// }
 
 llvm::Type *CodeGenContext::getAlias(std::string key)
 {

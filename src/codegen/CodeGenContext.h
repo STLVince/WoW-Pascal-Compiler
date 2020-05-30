@@ -80,7 +80,7 @@ public:
     CodeGenContext();
     std::map<std::string, llvm::Value *> &locals();
     llvm::Value *getValue(std::string name);
-    void putValue(std::string name, llvm::Value *value);
+    // void putValue(std::string name, llvm::Value *value);
     llvm::Type *getAlias(std::string key);
     bool setAlias(std::string key, llvm::Type *value);
     // llvm::BasicBlock *currentBlock();
