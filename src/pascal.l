@@ -1,14 +1,20 @@
-%option noyywrap c++
 %{
 #include <iostream>
+#include <string>
+#include <stdexcept>
 #include "parser.hpp"
 #include "utils/ast.hpp"
 
-#define YYLVAL_DEBUG yylval.debug = strdup(yytext); 
-extern YYLTYPE yylloc;
+#undef YY_DECL
+#define YY_DECL int yylex(ast::parser::semantic_type* yylval)
+using token = ast::parser::token::yytokentype;
 int line_no = 1;
 %}
 
+%option noyywrap 
+%option caseless
+
+NQUOTE [^']
 ANY .
 COMMENT "{"{ANY}*"}" 
 DIGIT [0-9]
@@ -22,79 +28,79 @@ REALNUM {DIGITS}({POINT})?({EXPONENT})?
 
 %%
 COMMENT {}
-":=" { return ASSIGN; }
-"=" { return EQUAL; }
-"(" { return LP; }
-")" { return RP; }
-"[" { return LB; }
-"]" { return RB; }
-"." { return DOT; }
-"," { return COMMA; }
-":" { return COLON; }
-";" { return SEMI; }
-"+" { return PLUS; }
-"-" { return MINUS; }
-"*" { return MUL; }
-"/" { return DIVI; }
-">=" { return GE; }
-">" { return GT; }
-"<=" { return LE; }
-"<" { return LT; }
-"<>" { return UNEQUAL; }
+":=" { return token::ASSIGN; }
+"=" { return token::EQUAL; }
+"(" { return token::LP; }
+")" { return token::RP; }
+"[" { return token::LB; }
+"]" { return token::RB; }
+"." { return token::DOT; }
+"," { return token::COMMA; }
+":" { return token::COLON; }
+";" { return token::SEMI; }
+"+" { return token::PLUS; }
+"-" { return token::MINUS; }
+"*" { return token::MUL; }
+"/" { return token::DIV; }
+">=" { return token::GE; }
+">" { return token::GT; }
+"<=" { return token::LE; }
+"<" { return token::LT; }
+"<>" { return token::UNEQUAL; }
 
-and { return AND; }
-abs { YYLVAL_DEBUG; return SYS_FUNCT; }
-array { return ARRAY; }
-begin { return _BEGIN; }
-boolean { YYLVAL_DEBUG; return SYS_TYPE; }
-case { return CASE; }
-const { return CONST; }
-char { YYLVAL_DEBUG; return SYS_TYPE; }
-chr { YYLVAL_DEBUG; return SYS_FUNCT; }
-downto { return DOWNTO; }
-do { return DO; }
-div { return DIVI; }
-end { return END; }
-else { return ELSE; }
-false { YYLVAL_DEBUG; return SYS_BOOL; }
-for { return FOR; }
-function { return FUNCTION; }
-goto { return GOTO; }
-integer { YYLVAL_DEBUG; return SYS_TYPE; }
-if { return IF; }
-mod { return MOD; }
-maxint { YYLVAL_DEBUG; return SYS_CON; }
-not { return NOT; }
-odd { YYLVAL_DEBUG; return SYS_FUNCT; }
-of { return OF; }
-ord { YYLVAL_DEBUG; return SYS_FUNCT; }
-or { return OR; }
-pred { YYLVAL_DEBUG; return SYS_FUNCT; }
-program { return PROGRAM; }
-procedure { return PROCEDURE; }
-read { return READ; }
-real { YYLVAL_DEBUG; return SYS_TYPE; }
-record { return RECORD; }
-repeat { return REPEAT; }
-sqrt { YYLVAL_DEBUG; return SYS_FUNCT; }
-sqr { YYLVAL_DEBUG; return SYS_FUNCT; }
-string { YYLVAL_DEBUG; return SYS_TYPE; }
-succ { YYLVAL_DEBUG; return SYS_FUNCT; }
-to { return TO; }
-then { return THEN; }
-true { YYLVAL_DEBUG; return SYS_BOOL; }
-type { return TYPE; }
-until { return UNTIL; }
-var { return VAR; }
-while { return WHILE; }
-writeln { YYLVAL_DEBUG; return SYS_PROC; }
-write { YYLVAL_DEBUG; return SYS_PROC; }
+and { return token::AND; }
+abs { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+array { return token::ARRAY; }
+begin { return token::_BEGIN; }
+boolean { yylval->build<ast::TypeName>(ast::TypeName::BOOLEAN); return token::SYS_TYPE; }
+case { return token::CASE; }
+const { return token::CONST; }
+char { yylval->build<ast::TypeName>(ast::TypeName::STRING); return token::SYS_TYPE; }
+chr { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+downto { return token::DOWNTO; }
+do { return token::DO; }
+div { return token::DIV; }
+end { return token::END; }
+else { return token::ELSE; }
+false { yylval->build<bool>(false); return token::SYS_BOOL; }
+for { return token::FOR; }
+function { return token::FUNCTION; }
+goto { return token::GOTO; }
+integer { yylval->build<ast::TypeName>(ast::TypeName::INTEGER); return token::SYS_TYPE; }
+if { return token::IF; }
+mod { return token::MOD; }
+maxint { yylval->build<std::string>(yytext); return token::SYS_CON; }
+not { return token::NOT; }
+odd { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+of { return token::OF; }
+ord { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+or { return token::OR; }
+pred { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+program { return token::PROGRAM; }
+procedure { return token::PROCEDURE; }
+read { return token::READ; }
+real { yylval->build<ast::TypeName>(ast::TypeName::REAL); return token::SYS_TYPE; }
+record { return token::RECORD; }
+repeat { return token::REPEAT; }
+sqrt { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+sqr { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+string { yylval->build<ast::TypeName>(ast::TypeName::STRING); return token::SYS_TYPE; }
+succ { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
+to { return token::TO; }
+then { return token::THEN; }
+true { yylval->build<bool>(true); return token::SYS_BOOL; }
+type { return token::TYPE; }
+until { return token::UNTIL; }
+var { return token::VAR; }
+while { return token::WHILE; }
+writeln { yylval->build<std::string>(yytext); return token::SYS_PROC; }
+write { yylval->build<std::string>(yytext); return token::SYS_PROC; }
 
-"'"{ANY}"'" { YYLVAL_DEBUG; return CHAR; }
-"'"{ANY}{ANY}+"'" { YYLVAL_DEBUG; return STRING; }
-{ID} { YYLVAL_DEBUG; return ID; }
-{INTNUM} { YYLVAL_DEBUG; return INTEGER; }
-{REALNUM} { YYLVAL_DEBUG; return REAL; }
+"'"{ANY}"'" { yylval->build<std::string>(yytext); return token::STRING; }
+"'"{ANY}{ANY}+"'" { yylval->build<std::string>(yytext); return token::STRING; }
+{ID} { yylval->build<std::string>(yytext); return token::ID; }
+{INTNUM} { yylval->build<int>(std::stoi(yytext)); return token::INTEGER; }
+{REALNUM} { yylval->build<double>(std::stod(yytext)); return token::REAL; }
 [ \t]+ {}
 [\n] { line_no++; }
 . { std::cerr<<"LEX error at line no." << line_no << std::endl; exit(1);}
