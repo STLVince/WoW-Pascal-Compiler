@@ -21,7 +21,11 @@ namespace ast
             list.push_back(type);
             return list;
         }*/
-        //vitural llvm::Value *code_gen(CodeGenContext &context) = 0;
+        void printSelf(std::string nodeName)
+        {
+            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << std::endl;
+        }
+        virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
 
     class ConstDecl : public Statement
@@ -40,7 +44,11 @@ namespace ast
             list.push_back(val);
             return list;
         }*/
-        //vitural llvm::Value *code_gen(CodeGenContext &context) = 0;
+        void printSelf(std::string nodeName)
+        {
+            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << "_" << static_cast<std::underlying_type<TypeName>::type>(val->type) << std::endl;
+        }
+        virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class VarDecl : public Statement
@@ -58,7 +66,12 @@ namespace ast
             list.push_back(type);
             return list;
         }*/
-        //vitural llvm::Value *code_gen(CodeGenContext &context) = 0;
+        void printSelf(std::string nodeName)
+        {
+            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type);
+            astDot << "_" << (is_global ? "global" : "not_global") << std::endl;
+        }
+        virtual llvm::Value *code_gen(CodeGenContext &context);
     };
 } // namespace ast
 
