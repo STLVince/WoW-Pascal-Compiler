@@ -2,7 +2,7 @@
 
 namespace ast
 {
-    void printSelf(std::string nodeName) 
+    void Identifier::printSelf(std::string nodeName) 
     {
     }
 
