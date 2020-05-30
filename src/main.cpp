@@ -22,8 +22,9 @@ int main( int argc, char** argv)
     p.parse();
 
     auto genContext = new CodeGenContext();
-    genContext->generateCode(*(astRoot.get()));
     astRoot->printSelf("main");
+    genContext->generateCode(*(astRoot.get()));
+    //astRoot->printSelf("main");
     genContext->outputCode(argv[2]);
 
     fclose(fp);

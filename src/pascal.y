@@ -4,7 +4,7 @@
 %defines
 %define api.namespace {ast}
 %define api.value.type variant
-%define parse.assert
+//%define parse.assert
 
 %code requires {
     #include <iostream>

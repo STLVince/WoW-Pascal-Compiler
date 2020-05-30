@@ -166,8 +166,8 @@ void CodeGenContext::generateCode(ast::Program &root)
     //pm.run(*module);
 
     // write IR to stderr
-    module->dump();
-    // module->print(llvm::errs(), nullptr);
+    //module->dump();
+    module->print(llvm::errs(), nullptr);
     std::cout << "Code is generated!" << std::endl;
 }
 
