@@ -4,7 +4,7 @@
 %defines
 %define api.namespace {ast}
 %define api.value.type variant
-//%define parse.assert
+%define parse.assert
 
 %code requires {
     #include <iostream>
@@ -27,12 +27,9 @@
 %token INTEGER REAL CHAR STRING SYS_BOOL SYS_CON
 %token READ SYS_PROC SYS_FUNCT
 
-%type <std::string> PROGRAM ID SEMI ASSIGN LP RP LB RB DOT COMMA COLON
-%type <std::string> ARRAY _BEGIN CONST END FUNCTION PROCEDURE RECORD VAR TYPE
-%type <std::string> DOWNTO DO REPEAT TO THEN WHILE UNTIL FOR IF ELSE CASE OF GOTO
-%type <std::string> EQUAL UNEQUAL GE GT LE LT AND OR NOT PLUS MINUS MUL DIV DIVI MOD
-%type <std::string> CHAR STRING SYS_CON
-%type <std::string> READ SYS_PROC SYS_FUNCT
+
+%type <std::string> CHAR STRING SYS_CON ID
+%type <std::string> SYS_PROC SYS_FUNCT
 %type <bool> SYS_BOOL
 %type <int> INTEGER
 %type <double> REAL
@@ -97,7 +94,7 @@ const_expr_list:
 const_value:
     INTEGER     { $$ = ast::make_node<ast::IntegerType>($1); }
     | REAL      { $$ = ast::make_node<ast::RealType>($1); }
-    | CHAR      { /*$$ = ast::make_node<ast::CharType>($1.c_str());*/ }
+    | CHAR      { $$ = ast::make_node<ast::StringType>($1); }
     | STRING    { $$ = ast::make_node<ast::StringType>($1); }
     | SYS_CON   { $$ = ast::make_node<ast::IntegerType>(32767); }
     | SYS_BOOL  { $$ = ast::make_node<ast::BooleanType>($1); };

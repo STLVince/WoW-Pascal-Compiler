@@ -1,5 +1,6 @@
 %{
 #include <iostream>
+#include <stdio.h>
 #include <string>
 #include <stdexcept>
 #include "parser.hpp"
@@ -96,12 +97,12 @@ while { return token::WHILE; }
 writeln { yylval->build<std::string>(yytext); return token::SYS_PROC; }
 write { yylval->build<std::string>(yytext); return token::SYS_PROC; }
 
-"'"{ANY}"'" { yylval->build<std::string>(yytext); return token::STRING; }
+"'"{ANY}"'" { yylval->build<std::string>(yytext); return token::CHAR; }
 "'"{ANY}{ANY}+"'" { yylval->build<std::string>(yytext); return token::STRING; }
 {ID} { yylval->build<std::string>(yytext); return token::ID; }
-{INTNUM} { yylval->build<int>(std::stoi(yytext)); return token::INTEGER; }
-{REALNUM} { yylval->build<double>(std::stod(yytext)); return token::REAL; }
+{INTNUM} { yylval->build<int>(atoi(yytext)); return token::INTEGER; }
+{REALNUM} { yylval->build<double>(atof(yytext)); return token::REAL; }
 [ \t]+ {}
-[\n] { line_no++; }
+\n { line_no++; }
 . { std::cerr<<"LEX error at line no." << line_no << std::endl; exit(1);}
 %%
