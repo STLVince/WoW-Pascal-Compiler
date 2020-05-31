@@ -26,8 +26,6 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
-// #include "../utils/ast.hpp"
-
 extern std::ofstream astDot;
 extern std::ofstream codegenOutput;
 
@@ -52,20 +50,8 @@ public:
     void operator=(GlobalLLVMContext const &) = delete;
 };
 
-// class CodeGenBlock
-// {
-// public:
-//     llvm::BasicBlock *block;
-//     llvm::Value *returnValue;
-//     CodeGenBlock *parent;
-//     std::map<std::string, llvm::Value *> locals;
-// };
-
 class CodeGenContext
 {
-private:
-    // std::stack<CodeGenBlock *> blocks;
-
 public:
     llvm::Module *module;
     llvm::Function *currentFunction;
@@ -74,22 +60,16 @@ public:
     llvm::Function *printf;
     std::map<llvm::Function *, llvm::Function *> functionParent;    
     std::map<std::string, llvm::Type *> aliases;
-    // std::vector<std::string> traces;
     std::vector<int> labels;
     llvm::BasicBlock* labelBlock[10000];
-    // bool is_subroutine = false;
     std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
     std::unique_ptr<llvm::legacy::PassManager> mpm;
 
     CodeGenContext();
     std::map<std::string, llvm::Value *> &locals();
     llvm::Value *getValue(std::string name);
-    // void putValue(std::string name, llvm::Value *value);
     llvm::Type *getAlias(std::string key);
     bool setAlias(std::string key, llvm::Type *value);
-    // llvm::BasicBlock *currentBlock();
-    // void pushBlock(llvm::BasicBlock *block);
-    // void popBlock();
     llvm::Function *getPrintfPrototype();
     
     void generateCode(ast::Program& root);

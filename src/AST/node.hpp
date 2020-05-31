@@ -20,7 +20,6 @@ namespace ast
     {
     public:
         ~Node(){};
-        //virtual std::vector<std::shared_ptr<Node>> getChildren() { return *(new std::vector<std::shared_ptr<Node>>()); }
         virtual void printSelf(std::string nodeName) = 0;
         virtual llvm::Value *code_gen(CodeGenContext &context) = 0;
     };
@@ -45,12 +44,7 @@ namespace ast
 
     class StatementList : public Statement{
     public:
-        std::vector<std::shared_ptr<Statement>> list;
-        //virtual llvm::Value *CodeGen(CodeGenContext& context) {
-        //    for (auto stmt: list){
-         //       stmt->CodeGen(context);
-        //    }
-        //}        
+        std::vector<std::shared_ptr<Statement>> list;        
         std::vector<std::shared_ptr<Statement>> *get_list(){ return &list;}
         void printSelf(std::string nodeName)
         {

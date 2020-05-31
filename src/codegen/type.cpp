@@ -25,9 +25,6 @@ namespace ast
         case TypeName::RANGE:
             return llvm::Type::getInt32Ty(GlobalLLVMContext::getGlobalContext());
             break;
-        // case ast::TypeName::ARRAY:
-        //     return llvm::ArrayType::get(this->array_type->array_type->toLLVMType(), this->array_type->subscript->range_type->size());
-        //     break;
         default:
             return llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext());
             break;
@@ -45,7 +42,6 @@ namespace ast
         case TypeName::BOOLEAN:
             return context.Builder.getInt1Ty();
         default:
-            // throw CodegenException("Unsupported type3");
             std::cerr << "Unsupported type3" << std::endl;
         }
         return nullptr;

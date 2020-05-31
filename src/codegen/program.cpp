@@ -129,11 +129,8 @@ namespace ast
         // record original function and block
         auto oldFunction = context.currentFunction;
         context.currentFunction = function;
-        // auto oldBlock = context.currentBlock();
         auto oldBlock = context.Builder.GetInsertBlock();
         context.functionParent[function] = oldFunction;
-        // push block and start routine
-        // context.pushBlock(block);
         context.Builder.SetInsertPoint(block);
 
         // initialize arguments
@@ -154,7 +151,6 @@ namespace ast
         {
             codegenOutput << "Routine::code_gen: creating function return value declaration" << std::endl;
             // TODO check this
-            // auto alloc = new llvm::AllocaInst(this->type->getType(), 4, this->name->name.c_str(), context.currentBlock());
             auto *alloc = context.Builder.CreateAlloca(this->type->getType());
             // context.insert(this->routine_name->name) = alloc;
         }
@@ -186,8 +182,6 @@ namespace ast
         if (this->isFunction())
         {
             codegenOutput << "Routine::code_gen: generating return value for function" << std::endl;
-            // auto load_ret = new llvm::LoadInst(context.getValue(this->name->name), "", false, context.currentBlock());
-            // llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), load_ret, context.currentBlock());
             auto *local = context.getValue(this->name->name);
             auto *ret = context.Builder.CreateLoad(local);
             context.Builder.CreateRet(ret);
@@ -195,15 +189,10 @@ namespace ast
         else if (this->isProcedure())
         {
             codegenOutput << "Routine::code_gen: generating return void for procedure" << std::endl;
-            // llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), context.currentBlock());
             context.Builder.CreateRetVoid();
         }
 
         // restore current function and block
-        // while (context.currentBlock() != oldBlock)
-        // {
-        //     context.popBlock();
-        // }
         context.Builder.SetInsertPoint(oldBlock);
         context.currentFunction = oldFunction;
 

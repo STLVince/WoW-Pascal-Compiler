@@ -44,11 +44,6 @@ CodeGenContext::CodeGenContext() : Builder(GlobalLLVMContext::getGlobalContext()
     mpm->add(llvm::createFunctionInliningPass());
 }
 
-// std::map<std::string, llvm::Value *> &CodeGenContext::locals()
-// {
-//     return blocks.top()->locals;
-// }
-
 llvm::Value *CodeGenContext::getValue(std::string name)
 {
     llvm::Function *nowFunction = currentFunction;
@@ -69,11 +64,6 @@ llvm::Value *CodeGenContext::getValue(std::string name)
     return nowFunction->getValueSymbolTable()->lookup(name);
 }
 
-// void CodeGenContext::putValue(std::string name, llvm::Value *value)
-// {
-//     blocks.top()->locals.insert(make_pair(name, value));
-// }
-
 llvm::Type *CodeGenContext::getAlias(std::string key)
 {
     auto V = aliases[key];
@@ -92,26 +82,6 @@ bool CodeGenContext::setAlias(std::string key, llvm::Type *value)
     aliases[key] = value;
     return true;
 }
-
-// llvm::BasicBlock *CodeGenContext::currentBlock()
-// {
-//     return blocks.top()->block;
-// };
-
-// void CodeGenContext::pushBlock(llvm::BasicBlock *block)
-// {
-//     CodeGenBlock *newblock = new CodeGenBlock();
-//     blocks.push(newblock);
-//     blocks.top()->returnValue = nullptr;
-//     blocks.top()->block = block;
-// }
-
-// void CodeGenContext::popBlock()
-// {
-//     CodeGenBlock *top = blocks.top();
-//     blocks.pop();
-//     delete top;
-// }
 
 llvm::Function *CodeGenContext::getPrintfPrototype()
 {
@@ -138,19 +108,19 @@ void CodeGenContext::generateCode(ast::Program &root)
     mainFunction = llvm::Function::Create(ftype, llvm::GlobalValue::ExternalLinkage, "main", module);
     llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", mainFunction, 0);
 
-    CodeGenContext::printf = getPrintfPrototype();
+    // CodeGenContext::printf = getPrintfPrototype();
 
     // Push a new variable/block context
-    // pushBlock(basicBlock);
     Builder.SetInsertPoint(basicBlock);
     currentFunction = mainFunction;
     for (auto label : labels)
     {
         labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
-    }
+    };
+
     root.code_gen(*this);
-    // llvm::ReturnInst::Create(GlobalLLVMContext::getGlobalContext(), currentBlock());
-    // popBlock();
+    Builder.SetInsertPoint(basicBlock);
+    Builder.CreateRetVoid();
 
     // verify the main function
     llvm::verifyFunction(*mainFunction, &llvm::errs());

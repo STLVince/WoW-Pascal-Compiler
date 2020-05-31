@@ -17,7 +17,6 @@ namespace ast
         }
         if (!value)
         {
-            // throw CodegenException("Identifier not found");
             std::cerr << "Identifier" << name << "not found" << std::endl;
         }
         return value;

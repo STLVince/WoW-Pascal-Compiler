@@ -19,14 +19,6 @@ namespace ast
 
         FuncCall(std::shared_ptr<Identifier> id) : id(id), arg_list(nullptr) {}
         FuncCall(std::shared_ptr<Identifier> id, std::shared_ptr<ExpressionList> arg_list) : id(id), arg_list(arg_list) {}
-        /*virtual std::vector<std::shared_ptr<Node>> getChildren()
-        {
-            std::vector<std::shared_ptr<Node>> list;
-            list.push_back((std::shared_ptr<Node>)id);
-            for (auto i : *(arg_list))
-                list.push_back((std::shared_ptr<Node>)i);
-            return list;
-        }*/
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };
@@ -39,14 +31,6 @@ namespace ast
 
         ProcCall(std::shared_ptr<Identifier> id) : id(id), arg_list(nullptr) {}
         ProcCall(std::shared_ptr<Identifier> id, std::shared_ptr<ExpressionList> arg_list) : id(id), arg_list(arg_list) {}
-        /*virtual std::vector<std::shared_ptr<Node>> getChildren()
-        {
-            std::vector<std::shared_ptr<Node>> list;
-            list.push_back((std::shared_ptr<Node>)id);
-            for (auto i : *(arg_list))
-                list.push_back((std::shared_ptr<Node>)i);
-            return list;
-        }*/
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };
@@ -96,13 +80,6 @@ namespace ast
         OpType op;
 
         BinaryOp(std::shared_ptr<Expression> op1, OpType op, std::shared_ptr<Expression> op2) : op1(op1), op2(op2), op(op) {}
-        /*virtual std::vector<std::shared_ptr<Node>> getChildren()
-        {
-            std::vector<std::shared_ptr<Node>> list;
-            list.push_back((std::shared_ptr<Node>)op1);
-            list.push_back((std::shared_ptr<Node>)op2);
-            return list;
-        }*/
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };

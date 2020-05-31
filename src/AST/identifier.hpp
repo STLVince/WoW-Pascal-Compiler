@@ -12,7 +12,6 @@ namespace ast
         std::string name;
         
         Identifier(const std::string &name) : name(name) {}
-        //Identifier(const char* ptr) : name(*(new std::string(ptr))) {}
         ~Identifier() {};
         llvm::Value *GetPtr(CodeGenContext &context);
         void printSelf(std::string nodeName);

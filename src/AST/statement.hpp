@@ -20,13 +20,6 @@ namespace ast
         std::shared_ptr<Expression> rhs;
 
         AssignmentStmt(std::shared_ptr<Identifier> lhs, std::shared_ptr<Expression> rhs) : lhs(lhs), rhs(rhs) {}
-        /*virtual std::vector<std::shared_ptr<Node>> getChildren()
-        {
-            std::vector<std::shared_ptr<Node>> list;
-            list.push_back((std::shared_ptr<Node>)lhs);
-            list.push_back((std::shared_ptr<Node>)rhs);
-            return list;
-        }*/
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };

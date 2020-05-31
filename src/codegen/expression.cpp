@@ -57,7 +57,6 @@ namespace ast
         // check whether arguments match
         if (func->arg_size() != (*arg_list).size())
         {
-            // throw CodegenException("Argument not match for function " + name->GetName());
             std::cerr << "FuncCall::code_gen: number of arguments not match for function " + id->name << std::endl;
         }
 
@@ -80,7 +79,6 @@ namespace ast
         // check whether arguments match
         if (func->arg_size() != (*arg_list).size())
         {
-            // throw CodegenException("Argument not match for function " + name->GetName());
             std::cerr << "ProcCall::code_gen: number of arguments not match for procedure " + id->name << std::endl;
         }
 
@@ -113,29 +111,13 @@ namespace ast
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
                     func_args.push_back(value);
                 }
-                // else if (value->getType()->isArrayTy())
-                // {
-                //     func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
-                //     //func_args.push_back(value);
-                //     auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
-                //     auto *value2 = real_arg->GetPtr(context);
-                //     func_args.push_back(value2);
-                //     //std::string mystr2 = value2->getName().str();
-                //     //func_args.push_back(context.Builder.CreateGlobalStringPtr(mystr2));
-                // }
-                //   else if (value->getType()->)
                 // TODO: string support
                 else
                 {
-                    // throw CodegenException("incompatible type for sysfunc call");
                     std::cerr << "incompatible type for sysfunc call" << std::endl;
                 }
                 context.Builder.CreateCall(context.getPrintfPrototype(), func_args);
             }
-            // if (name == SysFunc::WRITELN)
-            // {
-            //     context.Builder.CreateCall(context.PrintfFunction, context.Builder.CreateGlobalStringPtr("\n"));
-            // }
             return nullptr;
         }
         return nullptr;
@@ -208,7 +190,6 @@ namespace ast
                 binop = llvm::Instruction::FDiv;
                 break;
             default:
-                // throw CodegenException("operation not valid");
                 std::cerr << "BinaryOp::code_gen: operation not valid" << std::endl;
             }
             return context.Builder.CreateBinOp(binop, op1, op2);
@@ -240,7 +221,6 @@ namespace ast
                 binop = llvm::Instruction::Xor;
                 break;
             default:
-                // throw CodegenException("operation not valid");
                 std::cerr << "BinaryOp::code_gen: operation not valid" << std::endl;
             }
             return context.Builder.CreateBinOp(binop, op1, op2);
@@ -293,7 +273,6 @@ namespace ast
                 binop = llvm::Instruction::FDiv;
                 break;
             default:
-                // throw CodegenException("operator not valid");
                 std::cerr << "BinaryOp::code_gen: operation not valid" << std::endl;
             }
             return context.Builder.CreateBinOp(binop, op1, op2);

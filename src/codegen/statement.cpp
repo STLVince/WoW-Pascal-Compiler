@@ -119,30 +119,9 @@ namespace ast
     llvm::Value *AssignmentStmt::code_gen(CodeGenContext &context)
     {
         codegenOutput << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
-        // get the lhs pointer, first cast
-        // TODO handle array type
-        // llvm::Value *lhs;
-        // auto id_cast = std::dynamic_pointer_cast<IdentifierAST>(this->lhs);
-        // if (id_cast) {
-        //     lhs = id_cast->GetPtr(context);
-        // }
-        // else {
-        //     auto array_cast = std::dynamic_pointer_cast<ArrayAccessAST>(this->lhs);
-        //     if (array_cast) {
-        //         lhs = array_cast->GetPtr(context);
-        //     }
-        //     else
-        //         // throw CodegenException("assignment left argument not a identifier.\n");
-        //         std::cerr << "assignment left argument not a identifier.\n" << std::endl;
-        // }
         auto lhs = this->lhs->GetPtr(context);
-        // if (std::dynamic_pointer_cast<FuncCall>(this->lhs))
-        // {
-        //     codegenOutput << "It is a custom function call!" << std::endl;
-        // }
 
         auto *rhs = this->rhs->code_gen(context);
-        //rhs = context.Builder.CreateLoad(rhs);
 
         auto *lhs_type = lhs->getType()->getPointerElementType();
         auto *rhs_type = rhs->getType();
@@ -156,11 +135,10 @@ namespace ast
                    || (lhs_type->isDoubleTy() && rhs_type->isDoubleTy())                                                           // float
                    || (lhs_type->isArrayTy() && rhs_type->isPointerTy()) || (lhs_type->isArrayTy() && rhs_type->isIntegerTy(32)))) // string
         {
-            // throw CodegenException("incompatible assignment type");
             std::cerr << "incompatible assignment type" << std::endl;
         }
         auto *lhs_type2 = lhs->getType()->getPointerElementType();
-        //assert(rhs->getType() == llvm::cast<llvm::PointerType>(lhs->getType())->getElementType());
+        
         context.Builder.CreateStore(rhs, lhs);
         return nullptr;
     }
@@ -170,7 +148,6 @@ namespace ast
         auto *cond = condition->code_gen(context);
         if (!cond->getType()->isIntegerTy(1))
         {
-            // throw CodegenException("if statement not boolean");
             std::cerr << "if statement not boolean" << std::endl;
         }
 
@@ -246,21 +223,16 @@ namespace ast
 
         context.Builder.CreateBr(loopStmtB);
         context.Builder.SetInsertPoint(loopStmtB);
-        // context.pushBlock(loopStmtB);
         for (auto stmt : *(loop_stmt->get_list()))
         {
             stmt->code_gen(context);
         }
         context.Builder.CreateBr(loopEndB);
-        // context.popBlock();
-
-        // context.pushBlock(loopEndB);
+        
         context.Builder.SetInsertPoint(loopEndB);
         llvm::Value *test = this->condition->code_gen(context);
         llvm::Value *ret = context.Builder.CreateCondBr(test, loopExitB, loopStmtB);
-        // context.popBlock();
-
-        // context.pushBlock(loopExitB);
+        
         context.Builder.SetInsertPoint(loopExitB);
 
         return ret;
@@ -327,14 +299,11 @@ namespace ast
         {
             auto cond = new BinaryOp(expression, OpType::EQ, (*list)[i]->condition);
             llvm::BasicBlock *bnext = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "next", context.currentFunction);
-            // llvm::BranchInst::Create(basic_blocks[i], bnext, cond->code_gen(context), context.currentBlock());
             context.Builder.CreateCondBr(cond->code_gen(context), basic_blocks[i], bnext);
-            // context.pushBlock(bnext);
             context.Builder.SetInsertPoint(bnext);
         }
 
         auto cond = new BinaryOp(expression, OpType::EQ, (*list)[basic_blocks.size() - 1]->condition);
-        // auto ret = llvm::BranchInst::Create(basic_blocks[basic_blocks.size() - 1], bexit, cond->code_gen(context), context.currentBlock());
         auto ret = context.Builder.CreateCondBr(cond->code_gen(context), basic_blocks[basic_blocks.size() - 1], bexit);
         // code gen for each case body
         for (unsigned int i = 0; i < basic_blocks.size(); i++)
@@ -345,7 +314,6 @@ namespace ast
             context.Builder.CreateBr(basic_blocks[i]);
         }
 
-        // context.pushBlock(bexit);
         context.Builder.SetInsertPoint(bexit);
 
         return ret;
@@ -353,9 +321,7 @@ namespace ast
 
     llvm::Value *LabelStmt::code_gen(CodeGenContext &context)
     {
-        // llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
         context.Builder.CreateBr(context.labelBlock[label]);
-        // context.pushBlock(context.labelBlock[label]);
         context.Builder.SetInsertPoint(context.labelBlock[label]);
         return statement->code_gen(context);
     }
@@ -364,9 +330,7 @@ namespace ast
     {
         llvm::Value *test = (new BooleanType("true"))->code_gen(context);
         llvm::BasicBlock *bafter = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "afterGoto", context.currentFunction);
-        // auto ret = llvm::BranchInst::Create(context.labelBlock[label], context.currentBlock());
         auto ret = context.Builder.CreateBr(context.labelBlock[label]);
-        // context.pushBlock(bafter);
         context.Builder.SetInsertPoint(bafter);
         return ret;
     }

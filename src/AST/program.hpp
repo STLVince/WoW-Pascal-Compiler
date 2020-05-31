@@ -19,7 +19,6 @@ namespace ast
     using TypeDeclList = std::vector<std::shared_ptr<TypeDef>>;
     using VarDeclList = std::vector<std::shared_ptr<VarDecl>>;
     using RoutineList = std::vector<std::shared_ptr<Routine>>;
-    //using StatementList = std::vector<std::shared_ptr<Statement>>;
     using NameList = std::vector<std::string>;
 
     class Program : public Node
@@ -33,21 +32,6 @@ namespace ast
 
         Program() {}
         Program(std::shared_ptr<ConstDeclList> const_part, std::shared_ptr<TypeDeclList> type_part, std::shared_ptr<VarDeclList> var_part, std::shared_ptr<RoutineList> routine_part, std::shared_ptr<StatementList> routine_body) : const_part(const_part), type_part(type_part), var_part(var_part), routine_part(routine_part), routine_body(routine_body) {}
-        /*virtual std::vector<std::shared_ptr<Node>> getChildren()
-        {
-            std::vector<std::shared_ptr<Node>> list;
-            for (auto i : *(const_part))
-                list.push_back((std::shared_ptr<Node>)i);
-            for (auto i : *(type_part))
-                list.push_back((std::shared_ptr<Node>)i);
-            for (auto i : *(var_part))
-                list.push_back((std::shared_ptr<Node>)i);
-            //for (auto i : *(routine_part))
-                //list.push_back((std::shared_ptr<Node>)i);
-            for (auto i : *(routine_body))
-                list.push_back((std::shared_ptr<Node>)i);
-            return list;
-        }*/
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };
@@ -73,23 +57,6 @@ namespace ast
         bool isFunction() { return routine_type == RoutineType::FUNCTION; }
         bool isProcedure() { return routine_type == RoutineType::PROCEDURE; }
 
-        /*virtual std::vector<std::shared_ptr<Node>> getChildren()
-        {
-            std::vector<std::shared_ptr<Node>> list;
-            list.push_back((std::shared_ptr<Node>)name);
-            list.push_back((std::shared_ptr<Node>)type);
-            for (auto i : *(arg_list))
-                list.push_back((std::shared_ptr<Node>)i);
-            for (auto i : *(const_part))
-                list.push_back((std::shared_ptr<Node>)i);
-            for (auto i : *(var_part))
-                list.push_back((std::shared_ptr<Node>)i);
-            //for (auto i : *(routine_part))
-                //list.push_back((std::shared_ptr<Node>)i);
-            for (auto i : *(routine_body))
-                list.push_back((std::shared_ptr<Node>)i);
-            return list;
-        }*/
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };
