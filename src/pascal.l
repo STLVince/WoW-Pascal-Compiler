@@ -56,7 +56,7 @@ begin { return token::_BEGIN; }
 boolean { yylval->build<ast::TypeName>(ast::TypeName::BOOLEAN); return token::SYS_TYPE; }
 case { return token::CASE; }
 const { return token::CONST; }
-char { yylval->build<ast::TypeName>(ast::TypeName::STRING); return token::SYS_TYPE; }
+char { yylval->build<ast::TypeName>(ast::TypeName::CHARACTER); return token::SYS_TYPE; }
 chr { yylval->build<std::string>(yytext); return token::SYS_FUNCT; }
 downto { return token::DOWNTO; }
 do { return token::DO; }
@@ -97,7 +97,7 @@ while { return token::WHILE; }
 writeln { yylval->build<std::string>(yytext); return token::SYS_PROC; }
 write { yylval->build<std::string>(yytext); return token::SYS_PROC; }
 
-"'"{ANY}"'" { yylval->build<std::string>(yytext); return token::CHAR; }
+"'"{ANY}"'" { yylval->build<char>(yytext[0]); return token::CHAR; }
 "'"{ANY}{ANY}+"'" { yylval->build<std::string>(yytext); return token::STRING; }
 {ID} { yylval->build<std::string>(yytext); return token::ID; }
 {INTNUM} { yylval->build<int>(atoi(yytext)); return token::INTEGER; }
