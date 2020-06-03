@@ -94,6 +94,7 @@ namespace ast
     llvm::Value *SysFuncCall::code_gen(CodeGenContext &context)
     {
         codegenOutput << "SysFuncCall::code_gen: inside sysfunc" << std::endl;
+
         if (id->name == "WRITE" || id->name == "WRITELN")
         {
             for (auto &arg : *(this->arg_list))
@@ -131,6 +132,7 @@ namespace ast
     llvm::Value *BinaryOp::code_gen(CodeGenContext &context)
     {
         codegenOutput << "BinaryOp::code_gen: generating binary expression" << std::endl;
+        
         auto *op1 = this->op1->code_gen(context);
         auto *op2 = this->op2->code_gen(context);
 

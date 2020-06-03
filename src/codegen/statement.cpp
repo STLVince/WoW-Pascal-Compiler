@@ -119,6 +119,7 @@ namespace ast
     llvm::Value *AssignmentStmt::code_gen(CodeGenContext &context)
     {
         codegenOutput << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
+
         auto lhs = this->lhs->GetPtr(context);
 
         auto *rhs = this->rhs->code_gen(context);
@@ -145,6 +146,8 @@ namespace ast
 
     llvm::Value *IfStmt::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "IfStmt::code_gen: inside IfStmt ast" << std::endl;
+
         auto *cond = condition->code_gen(context);
         if (!cond->getType()->isIntegerTy(1))
         {
@@ -187,6 +190,8 @@ namespace ast
 
     llvm::Value *WhileStmt::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "WhileStmt::code_gen: inside WhileStmt ast" << std::endl;
+
         auto *function = context.Builder.GetInsertBlock()->getParent();
         auto *while_stat = llvm::BasicBlock::Create(context.module->getContext(), "while", function);
         auto *loop_stat = llvm::BasicBlock::Create(context.module->getContext(), "loop", function);
@@ -217,6 +222,8 @@ namespace ast
 
     llvm::Value *RepeatStmt::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "RepeatStmt::code_gen: inside RepeatStmt ast" << std::endl;
+        
         llvm::BasicBlock *loopStmtB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopStmt", context.currentFunction);
         llvm::BasicBlock *loopEndB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopEnd", context.currentFunction);
         llvm::BasicBlock *loopExitB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopExit", context.currentFunction);
@@ -240,6 +247,8 @@ namespace ast
 
     llvm::Value *ForStmt::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "ForStmt::code_gen: inside ForStmt ast" << std::endl;
+        
         if (!loop_var->code_gen(context)->getType()->isIntegerTy(32))
         {
             std::cerr << "ForStmt::code_gen: for loop identifier not integer" << std::endl;
@@ -321,6 +330,7 @@ namespace ast
 
     llvm::Value *LabelStmt::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "LabelStmt::code_gen: inside LabelStmt ast" << std::endl;
         context.Builder.CreateBr(context.labelBlock[label]);
         context.Builder.SetInsertPoint(context.labelBlock[label]);
         return statement->code_gen(context);
@@ -328,6 +338,7 @@ namespace ast
 
     llvm::Value *GotoStmt::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "GotoStmt::code_gen: inside GotoStmt ast" << std::endl;
         llvm::Value *test = (new BooleanType("true"))->code_gen(context);
         llvm::BasicBlock *bafter = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "afterGoto", context.currentFunction);
         auto ret = context.Builder.CreateBr(context.labelBlock[label]);

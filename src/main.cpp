@@ -12,7 +12,7 @@ std::ofstream codegenOutput("../result/codegen");
 int main( int argc, char** argv)
 {
     if(argc < 3) {
-        std::cout << "[Usage]: ./[elf] [ir/asm/obj] [source]" << std::endl;
+        std::cout << "[Usage]: ./[elf] [source] [destination]" << std::endl;
         return 0;
     }
 

@@ -9,7 +9,7 @@ namespace ast
     llvm::Value *Identifier::GetPtr(CodeGenContext &context)
     {
         // first find in local context
-        codegenOutput << "finding " << name << std::endl;
+        codegenOutput << "Identifier::GetPtr: finding " << name << std::endl;
         auto *value = context.getValue(name);
         if (!value)
         {
@@ -24,6 +24,7 @@ namespace ast
 
     llvm::Value *Identifier::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "Identifier::code_gen: gen_code for " << name << std::endl;
         return context.Builder.CreateLoad(GetPtr(context));
     }
 } // namespace ast

@@ -64,23 +64,27 @@ namespace ast
 
     llvm::Value *IntegerType::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "IntegerType::code_gen: inside IntegerType ast" << std::endl;
         auto *type = context.Builder.getInt32Ty();
         return llvm::ConstantInt::getSigned(type, val);
     }
 
     llvm::Value *RealType::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "RealType::code_gen: inside RealType ast" << std::endl;
         auto *type = context.Builder.getDoubleTy();
         return llvm::ConstantFP::get(type, val);
     }
 
     llvm::Value *BooleanType::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "BooleanType::code_gen: inside BooleanType ast" << std::endl;
         return val ? context.Builder.getTrue() : context.Builder.getFalse();
     }
 
     llvm::Value *StringType::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "StringType::code_gen: inside StringType ast" << std::endl;
         llvm::Module *M = context.module;
         llvm::LLVMContext &ctx = M->getContext();
         llvm::Constant *strConstant = llvm::ConstantDataArray::getString(ctx, val);

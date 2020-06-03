@@ -21,6 +21,7 @@ namespace ast
 
     llvm::Value *TypeDef::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "TypeDef::code_gen: inside TypeDef ast" << std::endl;
         auto success = context.setAlias(name->name, type->getType());
         if (!success)
         {
@@ -31,6 +32,7 @@ namespace ast
 
     llvm::Value *ConstDecl::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "ConstDecl::code_gen: inside ConstDecl ast" << std::endl;
         auto IfString = std::dynamic_pointer_cast<StringType>(val);
         if (IfString)
         {
@@ -44,6 +46,8 @@ namespace ast
 
     llvm::Value *VarDecl::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "VarDecl::code_gen: inside VarDecl ast" << std::endl;
+        
         llvm::Type *type = this->type->getType();
         llvm::Constant *constant;
 
