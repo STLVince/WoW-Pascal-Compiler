@@ -151,12 +151,13 @@ void CodeGenContext::outputCode(std::string filename)
         exit(1);
     }
 
-    int pos = filename.rfind('/');
+    int pos = filename.rfind('.');
     std::string ext = filename.substr(pos + 1);
-    llvm::TargetMachine::CodeGenFileType type;
+    llvm::TargetMachine::CodeGenFileType type = llvm::TargetMachine::CGFT_Null; // not emit any output.
     if (ext == "ll")
     {
         module->print(dest, nullptr);
+        return;
     }
     else if (ext == "s")
     {

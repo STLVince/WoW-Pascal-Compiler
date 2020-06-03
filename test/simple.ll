@@ -1,23 +1,10 @@
-	.text
-	.file	"Pascal"
-	.globl	main
-	.p2align	4, 0x90
-	.type	main,@function
-main:
-	.cfi_startproc
-	movl	$5, a(%rip)
-	retq
-.Lfunc_end0:
-	.size	main, .Lfunc_end0-main
-	.cfi_endproc
+; ModuleID = 'Pascal'
+source_filename = "Pascal"
 
-	.type	a,@object
-	.bss
-	.globl	a
-	.p2align	2
-a:
-	.long	0
-	.size	a, 4
+@a = global i32 0
 
-
-	.section	".note.GNU-stack","",@progbits
+define void @main() {
+entry:
+  store i32 5, i32* @a, align 4
+  ret void
+}
