@@ -40,7 +40,8 @@
 %type <std::shared_ptr<ast::Statement>>        proc_stmt stmt non_label_stmt else_clause for_stmt repeat_stmt while_stmt if_stmt goto_stmt case_stmt
 %type <std::shared_ptr<ast::Program>>          program program_head routine_head routine sub_routine
 %type <std::shared_ptr<ast::Routine>>          function_decl function_head procedure_head procedure_decl
-%type <std::shared_ptr<ast::TypeDecl>>         type_decl array_type_decl record_type_decl simple_type_decl
+%type <std::shared_ptr<ast::TypeDecl>>         type_decl record_type_decl simple_type_decl
+%type <std::shared_ptr<ast::ArrayType>>        array_type_decl
 %type <std::shared_ptr<ast::TypeDef>>          type_definition
 %type <std::shared_ptr<ast::ConstType>>        const_value
 %type <std::shared_ptr<ast::AssignmentStmt>>   assign_stmt
@@ -132,16 +133,13 @@ simple_type_decl:
         }
     }
     | LP name_list RP {}
-    | INTEGER DOT DOT INTEGER 	{}
     | CHAR DOT DOT CHAR 	{}
     | SYS_BOOL DOT DOT SYS_BOOL {} 
-    | MINUS INTEGER DOT DOT INTEGER	{}
-    | MINUS INTEGER DOT DOT MINUS INTEGER {}
     | STRING DOT DOT STRING {}
     | ID DOT DOT ID {};
 
 array_type_decl:
-	ARRAY LB simple_type_decl RB OF type_decl {};
+	ARRAY LB INTEGER DOT DOT INTEGER RB OF type_decl { $$ = ast::make_node<ast::ArrayType>($3, $6, $9); };
 
 record_type_decl:
 	RECORD field_decl_list END 	{};
@@ -259,7 +257,7 @@ non_label_stmt:
 
 assign_stmt:
     ID ASSIGN expression    { $$ = ast::make_node<ast::AssignmentStmt>(ast::make_node<ast::Identifier>($1), $3); }
-    | ID LB expression RB ASSIGN expression {}
+    | ID LB expression RB ASSIGN expression {$$ = ast::make_node<ast::AssignmentStmt>(ast::make_node<ast::ArrayAccess>($1, $3), $6); }
     | ID DOT ID ASSIGN expression {};
 
 proc_stmt: ID                           { $$ = ast::make_node<ast::ProcCall>(ast::make_node<ast::Identifier>($1)); }
@@ -365,8 +363,7 @@ factor:
     | LP expression RP                  { $$ = $2; }
     | NOT factor                        { $$ = ast::make_node<ast::BinaryOp>(ast::make_node<ast::BooleanType>("true"), ast::OpType::XOR, $2); }
     | MINUS factor                      { $$ = ast::make_node<ast::BinaryOp>(ast::make_node<ast::IntegerType>(0), ast::OpType::MINUS, $2); }
-    | ID LB expression RB          { //$$ = ast::make_node<ast::ArrayType>(ast::make_node<ast::Identifier>($1), $3); 
-    }
+    | ID LB expression RB               { $$ = ast::make_node<ast::ArrayAccess>($1, $3); }
     | ID DOT ID                         { //$$ = ast::make_node<ast::RecordType>(ast::make_node<ast::Identifier>($1), ast::make_node<ast::Identifier>($3)); 
     };
 

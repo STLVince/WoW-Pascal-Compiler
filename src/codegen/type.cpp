@@ -47,10 +47,10 @@ namespace ast
         return nullptr;
     }
 
-    // llvm::Value *ArrayType::code_gen(CodeGenContext &context)
-    // {
+    llvm::Value *ArrayType::code_gen(CodeGenContext &context)
+    {
 
-    // }
+    }
 
     // llvm::Value *RecordType::code_gen(CodeGenContext &context)
     // {

@@ -19,6 +19,8 @@ namespace ast
         ARRAY,
         RECORD
     };
+    
+    class IntegerType;
 
     class TypeDecl : public Statement
     {
@@ -35,6 +37,12 @@ namespace ast
 
     class ArrayType : public TypeDecl
     {
+    public:
+        int start, end;
+        std::shared_ptr<TypeDecl> array_type;
+        ArrayType(int start, int end, std::shared_ptr<TypeDecl> &array_type) : start(start), end(end), array_type(array_type) { this->type = TypeName::ARRAY; }
+        void printSelf(std::string nodeName) {}
+        llvm::Value *code_gen(CodeGenContext &context);
     };
 
     class RecordType : public TypeDecl

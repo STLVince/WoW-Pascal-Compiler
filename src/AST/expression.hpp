@@ -11,6 +11,17 @@ namespace ast
     class Identifier;
     using ExpressionList = std::vector<std::shared_ptr<Expression>>;
 
+    class ArrayAccess : public Expression
+    {
+    public:
+        std::shared_ptr<Identifier> name = nullptr;
+        std::shared_ptr<Expression> index = nullptr;
+        ArrayAccess(std::string& ID, std::shared_ptr<Expression> &index) : name(make_node<Identifier>(ID)), index(index) {}
+        void printSelf(std::string nodeName);
+        llvm::Value *code_gen(CodeGenContext &context);
+        llvm::Value *GetPtr(CodeGenContext &context);
+    };
+
     class FuncCall : public Expression, public Statement
     {
     public:
