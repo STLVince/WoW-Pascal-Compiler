@@ -1,4 +1,4 @@
 program write1;
 begin
-	writeln(true);
+	writeln('c');
 end.

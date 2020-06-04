@@ -46,7 +46,7 @@ namespace ast
 
     llvm::Value *VarDecl::code_gen(CodeGenContext &context)
     {
-        codegenOutput << "VarDecl::code_gen: inside VarDecl ast" << std::endl;
+        codegenOutput << "VarDecl::code_gen: VarDecl for " << name->name << std::endl;
 
         if (is_global)
         {
@@ -65,6 +65,7 @@ namespace ast
                 constant = llvm::ConstantFP::get(type, 0.0);
                 break;
             case TypeName::STRING:
+                codegenOutput << "VarDecl::code_gen: string type" << std::endl;
                 constant = llvm::ConstantDataArray::getString(GlobalLLVMContext::getGlobalContext(), "", true);
                 break;
             // case TypeName::ARRAY:
@@ -73,6 +74,7 @@ namespace ast
             default:
                 std::cerr << "unsupported type2" << std::endl;
             }
+            codegenOutput << "VarDecl::code_gen: finish type ref" << std::endl;
             return new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, name->name);
         }
         else

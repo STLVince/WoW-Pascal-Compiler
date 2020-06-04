@@ -5,7 +5,6 @@ namespace ast
 {
     void ArrayAccess::printSelf(std::string nodeName)
     {
-
     }
 
     void FuncCall::printSelf(std::string nodeName)
@@ -54,12 +53,12 @@ namespace ast
 
     llvm::Value *ArrayAccess::code_gen(CodeGenContext &context)
     {
-
+        return nullptr;
     }
 
     llvm::Value *ArrayAccess::GetPtr(CodeGenContext &context)
     {
-
+        return nullptr;
     }
 
     llvm::Value *FuncCall::code_gen(CodeGenContext &context)
@@ -110,22 +109,69 @@ namespace ast
     {
         codegenOutput << "SysFuncCall::code_gen: inside sysfunc" << std::endl;
 
-        if (id->name == "write" || id->name == "writeln")
+        // if (id->name == "write" || id->name == "writeln")
+        // {
+        //     for (auto &arg : *(this->arg_list))
+        //     {
+        //         auto *value = arg->code_gen(context);
+        //         auto arg_type = value->getType();
+        //         std::vector<llvm::Value *> func_args;
+        //         if (arg_type->isIntegerTy())
+        //         {
+        //             func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
+        //             func_args.push_back(value);
+        //         }
+        //         else if (arg_type->isDoubleTy())
+        //         {
+        //             func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
+        //             func_args.push_back(value);
+        //         }
+        //         // TODO: string support
+        //         else
+        //         {
+        //             std::cerr << "incompatible type for sysfunc call" << std::endl;
+        //         }
+        //         context.Builder.CreateCall(context.printf, func_args);
+        //     }
+        //     return nullptr;
+        // }
+        return nullptr;
+    }
+
+    llvm::Value *SysProcCall::code_gen(CodeGenContext &context)
+    {
+        codegenOutput << "SysProcCall::code_gen: inside sysproc" << std::endl;
+
+        if (id->name == "write")
         {
             for (auto &arg : *(this->arg_list))
             {
                 auto *value = arg->code_gen(context);
-                auto x = value->getType();
+                auto arg_type = value->getType();
                 std::vector<llvm::Value *> func_args;
-                if (value->getType()->isIntegerTy())
+                if (arg_type->isIntegerTy()) // int/bool
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
                     func_args.push_back(value);
                 }
-                else if (value->getType()->isDoubleTy())
+                // else if (arg_type->isIntegerTy(8)) // char
+                // {
+                //     func_args.push_back(context.Builder.CreateGlobalStringPtr("%c"));
+                //     func_args.push_back(value);
+                // }
+                else if (arg_type->isDoubleTy()) //real
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
                     func_args.push_back(value);
+                }
+                else if (arg_type->isArrayTy()) {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s\n"));
+                    //func_args.push_back(value);
+                    auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
+                    auto *value2 = real_arg->GetPtr(context);
+                    func_args.push_back(value2);
+                    //std::string mystr2 = value2->getName().str();
+                    //func_args.push_back(context.GetBuilder().CreateGlobalStringPtr(mystr2));
                 }
                 // TODO: string support
                 else
@@ -136,29 +182,36 @@ namespace ast
             }
             return nullptr;
         }
-        return nullptr;
-    }
-
-    llvm::Value *SysProcCall::code_gen(CodeGenContext &context)
-    {
-        codegenOutput << "SysProcCall::code_gen: inside sysproc" << std::endl;
-
-        if (id->name == "write" || id->name == "writeln")
+        else if (id->name == "writeln")
         {
             for (auto &arg : *(this->arg_list))
             {
                 auto *value = arg->code_gen(context);
-                auto x = value->getType();
+                auto arg_type = value->getType();
                 std::vector<llvm::Value *> func_args;
-                if (value->getType()->isIntegerTy())
+                if (arg_type->isIntegerTy()) // int/bool
                 {
-                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%d\n"));
                     func_args.push_back(value);
                 }
-                else if (value->getType()->isDoubleTy())
+                // else if (arg_type->isIntegerTy(8)) // char
+                // {
+                //     func_args.push_back(context.Builder.CreateGlobalStringPtr("%c\n"));
+                //     func_args.push_back(value);
+                // }
+                else if (arg_type->isDoubleTy()) //real
                 {
-                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%f\n"));
                     func_args.push_back(value);
+                }
+                else if (arg_type->isArrayTy()) {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s\n"));
+                    //func_args.push_back(value);
+                    auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
+                    auto *value2 = real_arg->GetPtr(context);
+                    func_args.push_back(value2);
+                    //std::string mystr2 = value2->getName().str();
+                    //func_args.push_back(context.GetBuilder().CreateGlobalStringPtr(mystr2));
                 }
                 // TODO: string support
                 else
@@ -175,7 +228,7 @@ namespace ast
     llvm::Value *BinaryOp::code_gen(CodeGenContext &context)
     {
         codegenOutput << "BinaryOp::code_gen: generating binary expression" << std::endl;
-        
+
         auto *op1 = this->op1->code_gen(context);
         auto *op2 = this->op2->code_gen(context);
 
