@@ -110,6 +110,21 @@ namespace ast
         void printSelf(std::string nodeName) {}
         llvm::Value *code_gen(CodeGenContext &context);
     };
+
+    class CharType : public ConstType
+    {
+    public:
+        char val;
+
+        CharType(const char val) : val(val) {}
+        CharType(const char *val) : val(val[0]) {}
+        TypeName getConstType()
+        {
+            return TypeName::CHARACTER;
+        }
+        void printSelf(std::string nodeName) {}
+        llvm::Value *code_gen(CodeGenContext &context);
+    };
 } // namespace ast
 
 #endif

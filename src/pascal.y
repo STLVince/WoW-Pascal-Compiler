@@ -28,11 +28,12 @@
 %token READ SYS_PROC SYS_FUNCT
 
 
-%type <std::string> CHAR STRING SYS_CON ID
+%type <std::string> STRING SYS_CON ID
 %type <std::string> SYS_PROC SYS_FUNCT
 %type <bool> SYS_BOOL
 %type <int> INTEGER
 %type <double> REAL
+%type <char> CHAR
 %type <ast::TypeName> SYS_TYPE
 
 %type <std::shared_ptr<ast::Expression>>       expression expr term factor
@@ -94,7 +95,7 @@ const_expr_list:
 const_value:
     INTEGER     { $$ = ast::make_node<ast::IntegerType>($1); }
     | REAL      { $$ = ast::make_node<ast::RealType>($1); }
-    | CHAR      { $$ = ast::make_node<ast::StringType>($1); }
+    | CHAR      { $$ = ast::make_node<ast::CharType>($1); }
     | STRING    { $$ = ast::make_node<ast::StringType>($1); }
     | SYS_CON   { $$ = ast::make_node<ast::IntegerType>(32767); }
     | SYS_BOOL  { $$ = ast::make_node<ast::BooleanType>($1); };
@@ -122,7 +123,7 @@ type_decl: simple_type_decl { $$ = $1; }
 simple_type_decl:
     SYS_TYPE    { $$ = ast::make_node<ast::TypeDecl>($1); }
     | ID { 
-        static std::unordered_map<std::string,ast::TypeName> const table = { {"integer",ast::TypeName::INTEGER}, {"real",ast::TypeName::REAL}, {"string", ast::TypeName::STRING}, {"char", ast::TypeName::STRING}, {"bool", ast::TypeName::BOOLEAN}, {"array", ast::TypeName::ARRAY}, {"record", ast::TypeName::RECORD} };
+        static std::unordered_map<std::string,ast::TypeName> const table = { {"integer",ast::TypeName::INTEGER}, {"real",ast::TypeName::REAL}, {"string", ast::TypeName::STRING}, {"char", ast::TypeName::CHARACTER}, {"bool", ast::TypeName::BOOLEAN}, {"array", ast::TypeName::ARRAY}, {"record", ast::TypeName::RECORD} };
         auto it = table.find($1);
             if (it != table.end()) {
             $$ = ast::make_node<ast::TypeDecl>(it->second);

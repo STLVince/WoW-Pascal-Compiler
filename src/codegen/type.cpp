@@ -97,4 +97,8 @@ namespace ast
 
         return strVal;
     }
+
+    llvm::Value *CharType::code_gen(CodeGenContext &context)
+    {
+    }
 } // namespace ast
