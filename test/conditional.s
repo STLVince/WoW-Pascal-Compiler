@@ -1,5 +1,5 @@
 	.text
-	.file	"main"
+	.file	"Pascal"
 	.globl	main
 	.p2align	4, 0x90
 	.type	main,@function
@@ -10,11 +10,9 @@ main:
 	testb	%al, %al
 	jne	.LBB0_2
 	movl	$1, s(%rip)
-	xorl	%eax, %eax
 	retq
 .LBB0_2:
 	movl	$0, s(%rip)
-	xorl	%eax, %eax
 	retq
 .Lfunc_end0:
 	.size	main, .Lfunc_end0-main

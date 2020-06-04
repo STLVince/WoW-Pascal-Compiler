@@ -13,35 +13,35 @@
 CodeGenContext::CodeGenContext() : Builder(GlobalLLVMContext::getGlobalContext())
 {
     module = new llvm::Module("Pascal", GlobalLLVMContext::getGlobalContext());
-    fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module);
+    // fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module);
 
     // createPromoteMemoryToRegister - Provide an entry point to create this pass.
-    fpm->add(llvm::createPromoteMemoryToRegisterPass());
+    // fpm->add(llvm::createPromoteMemoryToRegisterPass());
 
     // Do simple "peephole" optimizations and bit-twiddling optzns.
-    fpm->add(llvm::createInstructionCombiningPass());
+    // fpm->add(llvm::createInstructionCombiningPass());
 
     // Reassociate expressions.
-    fpm->add(llvm::createReassociatePass());
+    // fpm->add(llvm::createReassociatePass());
 
     // Eliminate Common SubExpressions.
-    fpm->add(llvm::createGVNPass());
+    // fpm->add(llvm::createGVNPass());
 
     // Simplify the control flow graph (deleting unreachable blocks, etc).
-    fpm->add(llvm::createCFGSimplificationPass());
-    fpm->doInitialization();
+    // fpm->add(llvm::createCFGSimplificationPass());
+    // fpm->doInitialization();
 
-    mpm = std::make_unique<llvm::legacy::PassManager>();
+    // mpm = std::make_unique<llvm::legacy::PassManager>();
     // createConstantMergePass - This function returns a new pass that merges
     // duplicate global constants together into a single constant that is shared.
     // This is useful because some passes (ie TraceValues) insert a lot of string
     // constants into the program, regardless of whether or not they duplicate an
     // existing string.
-    mpm->add(llvm::createConstantMergePass());
+    // mpm->add(llvm::createConstantMergePass());
 
     // createFunctionInliningPass - Return a new pass object that uses a heuristic
     // to inline direct function calls to small functions.
-    mpm->add(llvm::createFunctionInliningPass());
+    // mpm->add(llvm::createFunctionInliningPass());
 }
 
 llvm::Value *CodeGenContext::getValue(std::string name)
@@ -56,7 +56,7 @@ llvm::Value *CodeGenContext::getValue(std::string name)
     {
         if (module->getGlobalVariable(name) == NULL)
         {
-            throw std::logic_error("Undeclared variable " + name);
+            std::cerr<< "Undeclared variable " << name << std::endl;
             return nullptr;
         }
         return module->getGlobalVariable(name);
@@ -91,7 +91,7 @@ llvm::Function *CodeGenContext::getPrintfPrototype()
 
     llvm::FunctionType *printf_type = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), printf_arg_types, true);
 
-    llvm::Function *func = llvm::Function::Create(printf_type, llvm::Function::ExternalLinkage, llvm::Twine("printf"), this->module);
+    llvm::Function *func = llvm::Function::Create(printf_type, llvm::Function::ExternalLinkage, "printf", this->module);
     func->setCallingConv(llvm::CallingConv::C);
     return func;
 }
@@ -102,32 +102,32 @@ void CodeGenContext::generateCode(ast::Program &root)
     std::cout << "Generating code...\n";
 
     // Create the top level interpreter function to call as entry
-    std::vector<llvm::Type *> argTypes;
-    llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext()), makeArrayRef(argTypes), false);
+    // std::vector<llvm::Type *> argTypes;
+    // llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext()), makeArrayRef(argTypes), false);
 
-    mainFunction = llvm::Function::Create(ftype, llvm::GlobalValue::ExternalLinkage, "main", module);
-    llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", mainFunction, 0);
+    // mainFunction = llvm::Function::Create(ftype, llvm::GlobalValue::ExternalLinkage, "main", module);
+    // llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", mainFunction, 0);
 
-    // CodeGenContext::printf = getPrintfPrototype();
+    CodeGenContext::printf = getPrintfPrototype();
 
-    // Push a new variable/block context
-    Builder.SetInsertPoint(basicBlock);
-    currentFunction = mainFunction;
+    // // Push a new variable/block context
+    // Builder.SetInsertPoint(basicBlock);
+    // currentFunction = mainFunction;
     for (auto label : labels)
     {
         labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
     };
 
     root.code_gen(*this);
-    Builder.SetInsertPoint(basicBlock);
-    Builder.CreateRetVoid();
+    // Builder.SetInsertPoint(basicBlock);
+    // Builder.CreateRetVoid();
 
     // verify the main function
     llvm::verifyFunction(*mainFunction, &llvm::errs());
 
     // perform optimization
-    fpm->run(*mainFunction);
-    mpm->run(*module);
+    // fpm->run(*mainFunction);
+    // mpm->run(*module);
 
     // Print the bytecode in a human-readable format
     // to see if the program compiled properly
@@ -136,8 +136,7 @@ void CodeGenContext::generateCode(ast::Program &root)
     //pm.run(*module);
 
     // write IR to stderr
-    //module->dump();
-    module->print(llvm::errs(), nullptr);
+    // module->print(llvm::errs(), nullptr);
     std::cout << "Code is generated!" << std::endl;
 }
 

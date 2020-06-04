@@ -54,61 +54,76 @@ namespace ast
     {
         codegenOutput << "Program::code_gen: inside program" << std::endl;
 
+        // Create the top level interpreter function to call as entry
+        std::vector<llvm::Type *> argTypes;
+        llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext()), makeArrayRef(argTypes), false);
+
+        context.mainFunction = llvm::Function::Create(ftype, llvm::GlobalValue::ExternalLinkage, "main", context.module);
+        llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", context.mainFunction, 0);
+        context.Builder.SetInsertPoint(basicBlock);
+        context.currentFunction = context.mainFunction;
+
         llvm::Value *last = nullptr;
 
         // const decl part
         for (auto const_decl : *(this->const_part))
         {
-            // codegenOutput << "Program::code_gen: generating code for " << typeid(const_decl).name() << std::endl;
+            codegenOutput << "Program::code_gen: generating code for const_decl" << const_decl->name->name << std::endl;
             last = const_decl->code_gen(context);
         }
 
         // deal with variable declaration
         for (auto var_decl : *(this->var_part))
         {
-            // codegenOutput << "Program::code_gen: generating code for " << typeid(var_decl).name() << std::endl;
+            codegenOutput << "Program::code_gen: generating code for var_decl " << var_decl->name->name << std::endl;
             var_decl->is_global = 1;
             last = var_decl->code_gen(context);
         }
 
         for (auto routine : *(this->routine_part))
         {
-            // codegenOutput << "Program::code_gen: generating code for " << typeid(routine).name() << std::endl;
+            codegenOutput << "Program::code_gen: generating code for routine " << routine->name->name << std::endl;
             last = routine->code_gen(context);
         }
 
+        context.Builder.SetInsertPoint(basicBlock);
         // deal with program statements
         for (auto body : *(this->routine_body.get()->get_list()))
         {
-            // codegenOutput << "Program::code_gen: generating code for " << typeid(body).name() << std::endl;
+            codegenOutput << "Program::code_gen: generating code for body" << typeid(body).name() << std::endl;
             last = body->code_gen(context);
         }
-        codegenOutput << "Program::code_gen: creating program" << std::endl;
+        context.Builder.CreateRetVoid();
+        codegenOutput << "Program::code_gen: creating program done" << std::endl;
         return last;
     }
 
     llvm::Value *Routine::code_gen(CodeGenContext &context)
     {
-        codegenOutput << "Routine::code_gen: inside rountine definition" << std::endl;
+        codegenOutput << "Routine::code_gen: inside routine definition" << std::endl;
 
         // make the function type
-        llvm::FunctionType *f_type;
+        llvm::FunctionType *func_type;
         std::vector<llvm::Type *> arg_types;
+        std::vector<std::string> arg_names;
         for (auto arg : *(this->arg_list))
         {
             arg_types.push_back(arg->type->getType());
+            arg_names.push_back(arg->name->name);
         }
         if (this->isProcedure())
         {
-            f_type = llvm::FunctionType::get(llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext()), llvm::makeArrayRef(arg_types), false);
+            func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext()), llvm::makeArrayRef(arg_types), false);
         }
         else
         {
-            f_type = llvm::FunctionType::get(this->type->getType(), llvm::makeArrayRef(arg_types), false);
+            func_type = llvm::FunctionType::get(this->type->getType(), llvm::makeArrayRef(arg_types), false);
         }
 
         // create function
-        auto function = llvm::Function::Create(f_type, llvm::GlobalValue::ExternalLinkage, this->name->name.c_str(), context.module);
+        auto function = llvm::Function::Create(func_type, llvm::GlobalValue::ExternalLinkage, this->name->name.c_str(), context.module);
+
+        codegenOutput << "Routine::code_gen: created function definition" << std::endl;
 
         if (function->getName() != this->name->name)
         {
@@ -124,57 +139,120 @@ namespace ast
         }
 
         // create a new basic block to start insertion into
-        auto block = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", function, NULL);
+        auto block = llvm::BasicBlock::Create(context.module->getContext(), "entry", function);
 
         // record original function and block
         auto oldFunction = context.currentFunction;
         context.currentFunction = function;
-        auto oldBlock = context.Builder.GetInsertBlock();
+        // auto oldBlock = context.Builder.GetInsertBlock();
         context.functionParent[function] = oldFunction;
         context.Builder.SetInsertPoint(block);
 
+        codegenOutput << "Routine::code_gen: start initializing arguments" << std::endl;
+
         // initialize arguments
-        llvm::Value *arg_value;
-        auto args_values = function->arg_begin();
-        for (auto arg : *(this->arg_list))
+        // auto index = 0;
+        // for (auto &arg : function->args())
+        // {
+        //     auto *type = arg.getType();
+        //     llvm::Constant *constant;
+        //     if (type->isIntegerTy(32))
+        //     {
+        //         constant = llvm::ConstantInt::get(type, 0);
+        //     }
+        //     else if (type->isDoubleTy())
+        //     {
+        //         constant = llvm::ConstantFP::get(type, 0.0);
+        //     }
+        //     else
+        //     {
+        //         std::cerr << "Routine::code_gen: unknown function argument type" << std::endl;
+        //     }
+        //     std::string prefix(name->name);
+        //     std::cout << prefix + "_" + arg_names[index++] << std::endl;
+        //     auto *variable = new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, prefix + "_" + arg_names[index++]);
+        //     context.Builder.CreateStore(&arg, variable);
+        //     //auto *local = context.GetBuilder().CreateAlloca(arg.getType());
+        //     //context.SetValue(names[index++], local);
+        //     //context.GetBuilder().CreateStore(&arg, local);
+        // }
+        llvm::Value *parameter_value;
+        auto parameter_iter = function->arg_begin();
+        for (auto arg : *(arg_list))
         {
+            codegenOutput << "Routine::code_gen: gencode for argument " << arg->name->name << std::endl;
             arg->code_gen(context);
-            arg_value = args_values++;
-            arg_value->setName(arg->name->name.c_str());
-            auto inst = new llvm::StoreInst(arg_value, context.getValue(arg->name->name), false, block);
-            // context.Builder.CreateStore(&arg, variable);
+            parameter_value = parameter_iter++;
+            parameter_value->setName(arg->name->name.c_str());
+            auto inst = new llvm::StoreInst(parameter_value, context.getValue(arg->name->name), false, block);
         }
-        codegenOutput << "Routine::code_gen: argument part suc!\n";
+        codegenOutput << "Routine::code_gen: argument initializing success!\n";
 
         // allocate return variable
-        if (this->isFunction())
+        // if (this->isFunction())
+        // {
+        //     codegenOutput << "Routine::code_gen: creating function return value declaration" << std::endl;
+        //     // TODO check this
+        //     auto *alloc = context.Builder.CreateAlloca(this->type->getType());
+        //     // context.insert(this->routine_name->name) = alloc;
+        // }
+        // codegenOutput << "Routine::code_gen: function part success!\n";
+
+        // const decl part
+        for (auto const_decl : *(this->const_part))
         {
-            codegenOutput << "Routine::code_gen: creating function return value declaration" << std::endl;
-            // TODO check this
-            auto *alloc = context.Builder.CreateAlloca(this->type->getType());
-            // context.insert(this->routine_name->name) = alloc;
+            codegenOutput << "Routine::code_gen: generating code for const_decl" << const_decl->name->name << std::endl;
+            const_decl->code_gen(context);
         }
-        codegenOutput << "Routine::code_gen: function part success!\n";
 
         // deal with variable declaration
         for (auto var_decl : *(this->var_part))
         {
-            // codegenOutput << "Routine::code_gen: generating code for variable declaration " << typeid(var_decl).name() << std::endl;
+            codegenOutput << "Routine::code_gen: generating code for var_decl " << var_decl->name->name << std::endl;
+            var_decl->is_global = 0;
             var_decl->code_gen(context);
         }
 
-        // deal with routine declaration
+        // set the return variable
+        if (this->isFunction())
+        {
+            // auto *type = this->type->getType();
+            // llvm::Constant *constant;
+            // if (type->isIntegerTy(32))
+            // {
+            //     constant = llvm::ConstantInt::get(type, 0);
+            // }
+            // else if (type->isDoubleTy())
+            // {
+            //     constant = llvm::ConstantFP::get(type, 0.0);
+            // }
+            // else
+            // {
+            //     std::cerr << "Routine::code_gen: unknown function return type" << std::endl;
+            // }
+            // std::string prefix(name->name);
+            // // std::cout << prefix << std::endl;
+            // // context.GetTrace().push_back(prefix);
+            // auto *variable = new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, prefix + "_" + name->name);
+            codegenOutput << "Routine::code_gen: generating code for return variable " << name->name << std::endl;
+            context.Builder.CreateAlloca(type->getType(), 0, name->name);
+
+            //auto *ret = context.GetBuilder().CreateAlloca(proghead->type->GetType(context));
+            //context.SetValue(proghead->name->GetName(), ret);
+        }
+
         for (auto routine : *(this->routine_part))
         {
-            // codegenOutput << "Routine::code_gen: generating code for " << typeid(routine).name() << std::endl;
+            codegenOutput << "Routine::code_gen: generating code for routine " << routine->name->name << std::endl;
             routine->code_gen(context);
         }
 
+        context.Builder.SetInsertPoint(block);
+
         // deal with program statements
-        codegenOutput << "Routine::code_gen: var part suc!\n";
         for (auto body : *(this->routine_body.get()->get_list()))
         {
-            // codegenOutput << "Routine::code_gen: generating code for " << typeid(body).name() << std::endl;
+            codegenOutput << "Routine::code_gen: generating code for body" << std::endl;
             body->code_gen(context);
         }
 
@@ -193,14 +271,14 @@ namespace ast
         }
 
         // restore current function and block
-        context.Builder.SetInsertPoint(oldBlock);
+        // context.Builder.SetInsertPoint(oldBlock);
         context.currentFunction = oldFunction;
 
         // verify the function
         llvm::verifyFunction(*function, &llvm::errs());
 
         // perform optimization
-        context.fpm->run(*function);
+        // context.fpm->run(*function);
 
         return function;
     }

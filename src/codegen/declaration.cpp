@@ -2,7 +2,7 @@
 namespace ast
 {
     ConstDecl::ConstDecl(std::shared_ptr<Identifier> name, std::shared_ptr<ConstType> val) : name(name), type(new TypeDecl(val->getConstType())), val(val) {}
-    
+
     void TypeDef::printSelf(std::string nodeName)
     {
         astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << std::endl;
@@ -47,31 +47,37 @@ namespace ast
     llvm::Value *VarDecl::code_gen(CodeGenContext &context)
     {
         codegenOutput << "VarDecl::code_gen: inside VarDecl ast" << std::endl;
-        
-        llvm::Type *type = this->type->getType();
-        llvm::Constant *constant;
 
-        // TODO: new type support
-        switch (this->type->type)
+        if (is_global)
         {
-        case TypeName::INTEGER:
-            constant = llvm::ConstantInt::get(type, 0);
-            break;
-        case TypeName::REAL:
-            constant = llvm::ConstantFP::get(type, 0.0);
-            break;
-        case TypeName::BOOLEAN:
-            constant = llvm::ConstantInt::get(type, 0);
-            break;
-        case TypeName::STRING:
-            constant = llvm::ConstantDataArray::getString(GlobalLLVMContext::getGlobalContext(), "", true);
-            break;
-        // case TypeName::ARRAY:
-        // {        
-        // }
-        default:
-            std::cerr << "unsupported type2" << std::endl;
+            llvm::Type *type = this->type->getType();
+            llvm::Constant *constant;
+
+            // TODO: new type support
+            switch (this->type->type)
+            {
+            case TypeName::INTEGER:
+            case TypeName::BOOLEAN:
+            case TypeName::CHARACTER:
+                constant = llvm::ConstantInt::get(type, 0);
+                break;
+            case TypeName::REAL:
+                constant = llvm::ConstantFP::get(type, 0.0);
+                break;
+            case TypeName::STRING:
+                constant = llvm::ConstantDataArray::getString(GlobalLLVMContext::getGlobalContext(), "", true);
+                break;
+            // case TypeName::ARRAY:
+            // {
+            // }
+            default:
+                std::cerr << "unsupported type2" << std::endl;
+            }
+            return new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, name->name);
         }
-        return new llvm::GlobalVariable(*context.module, constant->getType(), false, llvm::GlobalVariable::ExternalLinkage, constant, name->name);
+        else
+        {
+            return context.Builder.CreateAlloca(this->type->getType(), 0, nullptr, name->name);
+        }
     };
 } // namespace ast

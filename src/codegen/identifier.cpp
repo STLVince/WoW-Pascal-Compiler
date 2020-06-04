@@ -17,7 +17,7 @@ namespace ast
         }
         if (!value)
         {
-            std::cerr << "Identifier" << name << "not found" << std::endl;
+            std::cerr << "Identifier::GetPtr: Identifier " << name << " not found" << std::endl;
         }
         return value;
     }

@@ -95,7 +95,7 @@ namespace ast
     {
         codegenOutput << "SysFuncCall::code_gen: inside sysfunc" << std::endl;
 
-        if (id->name == "WRITE" || id->name == "WRITELN")
+        if (id->name == "write" || id->name == "writeln")
         {
             for (auto &arg : *(this->arg_list))
             {
@@ -117,7 +117,7 @@ namespace ast
                 {
                     std::cerr << "incompatible type for sysfunc call" << std::endl;
                 }
-                context.Builder.CreateCall(context.getPrintfPrototype(), func_args);
+                context.Builder.CreateCall(context.printf, func_args);
             }
             return nullptr;
         }
@@ -126,6 +126,34 @@ namespace ast
 
     llvm::Value *SysProcCall::code_gen(CodeGenContext &context)
     {
+        codegenOutput << "SysProcCall::code_gen: inside sysproc" << std::endl;
+
+        if (id->name == "write" || id->name == "writeln")
+        {
+            for (auto &arg : *(this->arg_list))
+            {
+                auto *value = arg->code_gen(context);
+                auto x = value->getType();
+                std::vector<llvm::Value *> func_args;
+                if (value->getType()->isIntegerTy())
+                {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
+                    func_args.push_back(value);
+                }
+                else if (value->getType()->isDoubleTy())
+                {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
+                    func_args.push_back(value);
+                }
+                // TODO: string support
+                else
+                {
+                    std::cerr << "incompatible type for sysfunc call" << std::endl;
+                }
+                context.Builder.CreateCall(context.printf, func_args);
+            }
+            return nullptr;
+        }
         return nullptr;
     }
 

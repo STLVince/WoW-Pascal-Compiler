@@ -1,12 +1,12 @@
-; ModuleID = 'main'
-source_filename = "main"
+; ModuleID = 'Pascal'
+source_filename = "Pascal"
 
 @s = global i32 0
 @i = global i32 0
 
 declare i32 @printf(i8*, ...)
 
-define i32 @main() {
+define void @main() {
 entry:
   store i32 0, i32* @s
   %0 = load i32, i32* @i
@@ -29,5 +29,5 @@ loop:                                             ; preds = %while
   br label %while
 
 end:                                              ; preds = %while
-  ret i32 0
+  ret void
 }
