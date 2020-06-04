@@ -15,7 +15,6 @@ int line_no = 1;
 %option noyywrap 
 %option caseless
 
-NQUOTE [^']
 ANY .
 COMMENT ("{"{ANY}*"}")|("//"{ANY}*)
 DIGIT [0-9]
