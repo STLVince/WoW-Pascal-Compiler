@@ -3,6 +3,11 @@
 
 namespace ast
 {
+    void ArrayAccess::printSelf(std::string nodeName)
+    {
+
+    }
+
     void FuncCall::printSelf(std::string nodeName)
     {
         for (auto arg : *(this->arg_list))
@@ -45,6 +50,16 @@ namespace ast
 
     void BinaryOp::printSelf(std::string nodeName)
     {
+    }
+
+    llvm::Value *ArrayAccess::code_gen(CodeGenContext &context)
+    {
+
+    }
+
+    llvm::Value *ArrayAccess::GetPtr(CodeGenContext &context)
+    {
+
     }
 
     llvm::Value *FuncCall::code_gen(CodeGenContext &context)
