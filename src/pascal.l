@@ -15,9 +15,8 @@ int line_no = 1;
 %option noyywrap 
 %option caseless
 
-NQUOTE [^']
 ANY .
-COMMENT "{"{ANY}*"}" 
+COMMENT ("{"{ANY}*"}")|("//"{ANY}*)
 DIGIT [0-9]
 DIGITS {DIGIT}+
 LETTER [_a-zA-Z]
@@ -28,7 +27,7 @@ INTNUM {DIGITS}
 REALNUM {DIGITS}({POINT})?({EXPONENT})?
 
 %%
-COMMENT {}
+{COMMENT} {}
 ":=" { return token::ASSIGN; }
 "=" { return token::EQUAL; }
 "(" { return token::LP; }
