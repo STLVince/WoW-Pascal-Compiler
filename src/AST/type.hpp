@@ -109,8 +109,11 @@ namespace ast
     public:
         std::string val;
 
-        StringType(const char *val) : val(val) {}
-        StringType(const std::string val) : val(val) {}
+        StringType(const std::string val) : val(val) 
+        {
+            this->val.erase(this->val.begin());
+            this->val.pop_back();
+        }
         TypeName getConstType()
         {
             return TypeName::STRING;
