@@ -15,6 +15,7 @@ int line_no = 1;
 %option noyywrap 
 %option caseless
 
+NQUOTE [^']
 ANY .
 COMMENT ("{"{ANY}*"}")|("//"{ANY}*)
 DIGIT [0-9]
@@ -96,8 +97,8 @@ while { return token::WHILE; }
 writeln { yylval->build<std::string>(yytext); return token::SYS_PROC; }
 write { yylval->build<std::string>(yytext); return token::SYS_PROC; }
 
-"'"{ANY}"'" { yylval->build<char>(yytext[0]); return token::CHAR; }
-"'"{ANY}{ANY}+"'" { yylval->build<std::string>(yytext); return token::STRING; }
+"'"{NQUOTE}"'" { yylval->build<char>(yytext[1]); return token::CHAR; }
+"'"{NQUOTE}{NQUOTE}+"'" { yylval->build<std::string>(yytext); return token::STRING; }
 {ID} { yylval->build<std::string>(yytext); return token::ID; }
 {INTNUM} { yylval->build<int>(atoi(yytext)); return token::INTEGER; }
 {REALNUM} { yylval->build<double>(atof(yytext)); return token::REAL; }
