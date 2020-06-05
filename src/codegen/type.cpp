@@ -6,31 +6,31 @@ namespace ast
         return nullptr;
     }
 
-    llvm::Type *TypeDecl::getType()
+    llvm::Type *TypeDecl::getType(CodeGenContext &context)
     {
+        std::shared_ptr<ArrayType> real_type;
         switch (this->type)
         {
         case TypeName::INTEGER:
-            return llvm::Type::getInt32Ty(GlobalLLVMContext::getGlobalContext());
+            return context.Builder.getInt32Ty();
             break;
         case TypeName::REAL:
-            return llvm::Type::getDoubleTy(GlobalLLVMContext::getGlobalContext());
+            return context.Builder.getDoubleTy();
             break;
         case TypeName::CHARACTER:
-            return llvm::Type::getInt8Ty(GlobalLLVMContext::getGlobalContext());
+            return context.Builder.getInt8Ty();
             break;
-        // case TypeName::STRING:
-            // TODO
+        case TypeName::STRING:
+            return llvm::ConstantDataArray::getString(GlobalLLVMContext::getGlobalContext(), "", true)->getType();
         case TypeName::BOOLEAN:
-            return llvm::Type::getInt1Ty(GlobalLLVMContext::getGlobalContext());
+            return context.Builder.getInt1Ty();
             break;
-        // case TypeName::RANGE:
-        //     return llvm::Type::getInt32Ty(GlobalLLVMContext::getGlobalContext());
-        //     break;
-        // case TypeName::ARRAY:
-            // TODO
+        case TypeName::ARRAY:
+            real_type = std::dynamic_pointer_cast<ArrayType>(std::shared_ptr<TypeDecl>(this));
+            return llvm::ArrayType::get(real_type->array_type->getType(context), real_type->end - real_type->start);
+            break;
         // case TypeName::RECORD:
-            // TODO
+        // TODO
         default:
             return llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext());
             break;
@@ -47,16 +47,14 @@ namespace ast
             return context.Builder.getDoubleTy();
         case TypeName::CHARACTER:
             return context.Builder.getInt8Ty();
-        // case TypeName::STRING:
-            // TODO
+        case TypeName::STRING:
+            return llvm::ConstantDataArray::getString(GlobalLLVMContext::getGlobalContext(), "", true)->getType();
         case TypeName::BOOLEAN:
             return context.Builder.getInt1Ty();
-        // case TypeName::RANGE:
-            // TODO
         // case TypeName::ARRAY:
-            // TODO
+        // TODO
         // case TypeName::RECORD:
-            // TODO
+        // TODO
         default:
             std::cerr << "Unsupported type3" << std::endl;
         }
@@ -65,7 +63,29 @@ namespace ast
 
     llvm::Value *ArrayType::code_gen(CodeGenContext &context)
     {
-        return nullptr;
+        codegenOutput << "ArrayType::code_gen: inside ArrayType" << std::endl;
+
+        llvm::Constant *array_element;
+        switch (array_type->type)
+        {
+        case TypeName::REAL:
+            array_element = llvm::ConstantFP::get(llvm::Type::getDoubleTy(GlobalLLVMContext::getGlobalContext()), 0);
+            break;
+        case TypeName::INTEGER:
+        default:
+            array_element = llvm::ConstantInt::get(llvm::Type::getInt32Ty(GlobalLLVMContext::getGlobalContext()), 0, true);
+            break;
+        }
+
+        auto array_content = std::vector<llvm::Constant *>();
+        for (int i = 0; i < end - start; i++)
+        {
+            array_content.push_back(array_element);
+        }
+        auto arr_type = (llvm::ArrayType *)array_type->getType(context);
+        auto arr_const = llvm::ConstantArray::get(arr_type, array_content);
+
+        return new llvm::GlobalVariable(*context.module, array_type->getType(context), false, llvm::GlobalValue::ExternalLinkage, arr_const);
     }
 
     // llvm::Value *RecordType::code_gen(CodeGenContext &context)
@@ -101,17 +121,54 @@ namespace ast
     llvm::Value *StringType::code_gen(CodeGenContext &context)
     {
         codegenOutput << "StringType::code_gen: inside StringType, val = " << val << std::endl;
-        llvm::Module *M = context.module;
-        llvm::LLVMContext &ctx = M->getContext();
+        llvm::LLVMContext &ctx = context.module->getContext();
         llvm::Constant *strConstant = llvm::ConstantDataArray::getString(ctx, val);
-        llvm::Type *t = strConstant->getType();
-        llvm::GlobalVariable *GVStr = new llvm::GlobalVariable(*M, t, true, llvm::GlobalValue::ExternalLinkage, strConstant, "");
+        llvm::Type *string_type = strConstant->getType();
+        llvm::GlobalVariable *GVStr = new llvm::GlobalVariable(*context.module, string_type, true, llvm::GlobalValue::ExternalLinkage, strConstant, "");
         llvm::Constant *zero = llvm::Constant::getNullValue(llvm::IntegerType::getInt32Ty(ctx));
         llvm::Constant *indices[] = {zero, zero};
 
-        llvm::Constant *strVal = llvm::ConstantExpr::getGetElementPtr(t, GVStr, indices[0], true);
-
+        llvm::Constant *strVal = llvm::ConstantExpr::getGetElementPtr(string_type, GVStr, indices[0], true);
+        codegenOutput << "StringType::code_gen: StringType done" << std::endl;
         return strVal;
+
+        //0. Defs
+        // auto str = this->val;
+        // auto charType = llvm::IntegerType::get(GlobalLLVMContext::getGlobalContext(), 8);
+
+        // //1. Initialize chars vector
+        // std::vector<llvm::Constant *> chars(str.length());
+        // for (unsigned int i = 0; i < str.size(); i++)
+        // {
+        //     chars[i] = llvm::ConstantInt::get(charType, str[i]);
+        // }
+
+        // //1b. add a zero terminator too
+        // chars.push_back(llvm::ConstantInt::get(charType, 0));
+
+        // //2. Initialize the string from the characters
+        // auto stringType = llvm::ArrayType::get(charType, chars.size());
+
+        // //3. Create the declaration statement
+        // auto globalDeclaration = (llvm::GlobalVariable *)context.module->getOrInsertGlobal(".str", stringType);
+        // globalDeclaration->setInitializer(llvm::ConstantArray::get(stringType, chars));
+        // globalDeclaration->setConstant(true);
+        // globalDeclaration->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
+        // globalDeclaration->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
+        // // llvm::GlobalVariable * v = new llvm::GlobalVariable(context.module, stringType, true, llvm::GlobalVariable::ExternalLinkage, llvm::ConstantArray::get(stringType, chars));
+
+        // //4. Return a cast to an i8*
+        // return llvm::ConstantExpr::getBitCast(globalDeclaration, charType->getPointerTo());
+        // auto charType = llvm::IntegerType::get(GlobalLLVMContext::getGlobalContext(), 8);
+        // std::vector<llvm::Constant *> chars(val.size());
+        // for (unsigned int i = 0; i < val.size(); i++)
+        // {
+        //     chars[i] = llvm::ConstantInt::get(charType, val[i]);
+        // }
+        // chars.push_back(llvm::ConstantInt::get(charType, 0));
+        // auto init = llvm::ConstantArray::get(llvm::ArrayType::get(charType, chars.size()), chars);
+        // llvm::GlobalVariable *v = new llvm::GlobalVariable(*context.module, init->getType(), true, llvm::GlobalVariable::ExternalLinkage, init, val);
+        // return llvm::ConstantExpr::getBitCast(v, charType->getPointerTo());
     }
 
     llvm::Value *CharType::code_gen(CodeGenContext &context)

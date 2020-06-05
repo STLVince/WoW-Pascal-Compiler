@@ -108,7 +108,7 @@ namespace ast
         std::vector<std::string> arg_names;
         for (auto arg : *(this->arg_list))
         {
-            arg_types.push_back(arg->type->getType());
+            arg_types.push_back(arg->type->getType(context));
             arg_names.push_back(arg->name->name);
         }
         if (this->isProcedure())
@@ -117,7 +117,7 @@ namespace ast
         }
         else
         {
-            func_type = llvm::FunctionType::get(this->type->getType(), llvm::makeArrayRef(arg_types), false);
+            func_type = llvm::FunctionType::get(this->type->getType(context), llvm::makeArrayRef(arg_types), false);
         }
 
         // create function
@@ -154,7 +154,7 @@ namespace ast
         // auto index = 0;
         // for (auto &arg : function->args())
         // {
-        //     auto *type = arg.getType();
+        //     auto *type = arg.getType(context);
         //     llvm::Constant *constant;
         //     if (type->isIntegerTy(32))
         //     {
@@ -193,7 +193,7 @@ namespace ast
         // {
         //     codegenOutput << "Routine::code_gen: creating function return value declaration" << std::endl;
         //     // TODO check this
-        //     auto *alloc = context.Builder.CreateAlloca(this->type->getType());
+        //     auto *alloc = context.Builder.CreateAlloca(this->type->getType(context));
         //     // context.insert(this->routine_name->name) = alloc;
         // }
         // codegenOutput << "Routine::code_gen: function part success!\n";
@@ -216,7 +216,7 @@ namespace ast
         // set the return variable
         if (this->isFunction())
         {
-            // auto *type = this->type->getType();
+            // auto *type = this->type->getType(context);
             // llvm::Constant *constant;
             // if (type->isIntegerTy(32))
             // {
@@ -235,7 +235,7 @@ namespace ast
             // // context.GetTrace().push_back(prefix);
             // auto *variable = new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, prefix + "_" + name->name);
             codegenOutput << "Routine::code_gen: generating code for return variable " << name->name << std::endl;
-            context.Builder.CreateAlloca(type->getType(), 0, name->name);
+            context.Builder.CreateAlloca(type->getType(context), 0, name->name);
 
             //auto *ret = context.GetBuilder().CreateAlloca(proghead->type->GetType(context));
             //context.SetValue(proghead->name->GetName(), ret);

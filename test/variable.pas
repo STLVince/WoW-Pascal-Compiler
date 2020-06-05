@@ -1,4 +1,8 @@
 program variable;
+const
+    b = 1;
+    // c = 2.2;
+    teststr = 'aaa';
 var
 	a,b:integer;
 	r:real;
@@ -8,4 +12,6 @@ var
 begin
 	r:=0.5;
 	c:='0';
+	// s:='aa';
+	writeln(teststr);
 end.

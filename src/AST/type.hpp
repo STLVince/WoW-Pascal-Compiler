@@ -15,11 +15,10 @@ namespace ast
         CHARACTER,
         STRING,
         BOOLEAN,
-        RANGE,
         ARRAY,
         RECORD
     };
-    
+
     class IntegerType;
 
     class TypeDecl : public Statement
@@ -31,7 +30,7 @@ namespace ast
         TypeDecl(TypeName type) : type(type) {}
         ~TypeDecl(){};
         void printSelf(std::string nodeName) {}
-        llvm::Type *getType();
+        llvm::Type *getType(CodeGenContext &context);
         llvm::Value *code_gen(CodeGenContext &context);
     };
 
@@ -85,7 +84,7 @@ namespace ast
         {
             return TypeName::REAL;
         }
-        
+
         void printSelf(std::string nodeName) {}
         llvm::Value *code_gen(CodeGenContext &context);
     };

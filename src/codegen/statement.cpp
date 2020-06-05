@@ -120,8 +120,25 @@ namespace ast
     {
         codegenOutput << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
 
-        auto lhs = this->lhs->GetPtr(context);
-
+        llvm::Value *lhs;
+        auto id_cast = std::dynamic_pointer_cast<Identifier>(this->lhs);
+        if (id_cast)
+        {
+            lhs = id_cast->GetPtr(context);
+        }
+        else
+        {
+            auto array_cast = std::dynamic_pointer_cast<ArrayAccess>(this->lhs);
+            if (array_cast)
+            {
+                lhs = array_cast->GetPtr(context);
+            }
+            else
+            {
+                std::cerr << "AssignmentStmt::code_gen: assignment left argument not a identifier." << std::endl;
+            }
+        }
+        
         auto *rhs = this->rhs->code_gen(context);
 
         auto *lhs_type = lhs->getType()->getPointerElementType();
@@ -133,15 +150,19 @@ namespace ast
         }
         else if (!((lhs_type->isIntegerTy(1) && rhs_type->isIntegerTy(1))                                                          // bool
                    || (lhs_type->isIntegerTy(32) && rhs_type->isIntegerTy(32))                                                     // int
-                   || (lhs_type->isIntegerTy(8) && rhs_type->isIntegerTy(8))                                                     // char
+                   || (lhs_type->isIntegerTy(8) && rhs_type->isIntegerTy(8))                                                       // char
                    || (lhs_type->isDoubleTy() && rhs_type->isDoubleTy())                                                           // float
                    || (lhs_type->isArrayTy() && rhs_type->isPointerTy()) || (lhs_type->isArrayTy() && rhs_type->isIntegerTy(32)))) // string
         {
-            std::cerr << "incompatible assignment type" << std::endl;
+            std::cerr << "AssignmentStmt::code_gen: incompatible assignment type" << std::endl;
         }
-        auto *lhs_type2 = lhs->getType()->getPointerElementType();
-        
+        // auto *lhs_type2 = lhs->getType()->getPointerElementType();
+        // codegenOutput << typeid(rhs->getType()).name() << std::endl;
+        // codegenOutput << typeid(lhs->getType()).name() << std::endl;
+        // assert(rhs->getType() == llvm::cast<llvm::PointerType>(lhs->getType())->getElementType());
+        codegenOutput << "AssignmentStmt::code_gen: before create store" << std::endl;
         context.Builder.CreateStore(rhs, lhs);
+        codegenOutput << "AssignmentStmt::code_gen: after create store" << std::endl;
         return nullptr;
     }
 
@@ -224,7 +245,7 @@ namespace ast
     llvm::Value *RepeatStmt::code_gen(CodeGenContext &context)
     {
         codegenOutput << "RepeatStmt::code_gen: inside RepeatStmt ast" << std::endl;
-        
+
         llvm::BasicBlock *loopStmtB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopStmt", context.currentFunction);
         llvm::BasicBlock *loopEndB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopEnd", context.currentFunction);
         llvm::BasicBlock *loopExitB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopExit", context.currentFunction);
@@ -236,11 +257,11 @@ namespace ast
             stmt->code_gen(context);
         }
         context.Builder.CreateBr(loopEndB);
-        
+
         context.Builder.SetInsertPoint(loopEndB);
         llvm::Value *test = this->condition->code_gen(context);
         llvm::Value *ret = context.Builder.CreateCondBr(test, loopExitB, loopStmtB);
-        
+
         context.Builder.SetInsertPoint(loopExitB);
 
         return ret;
@@ -249,7 +270,7 @@ namespace ast
     llvm::Value *ForStmt::code_gen(CodeGenContext &context)
     {
         codegenOutput << "ForStmt::code_gen: inside ForStmt ast" << std::endl;
-        
+
         if (!loop_var->code_gen(context)->getType()->isIntegerTy(32))
         {
             std::cerr << "ForStmt::code_gen: for loop identifier not integer" << std::endl;

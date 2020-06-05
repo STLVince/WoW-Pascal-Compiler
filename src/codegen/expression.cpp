@@ -53,12 +53,43 @@ namespace ast
 
     llvm::Value *ArrayAccess::code_gen(CodeGenContext &context)
     {
-        return nullptr;
+        codegenOutput << "ArrayType::code_gen: creating array access for " << name->name << std::endl;
+        return context.Builder.CreateLoad(GetPtr(context));
+        // auto arr = context.getValue(name->name);
+
+        // auto idx_list = std::vector<llvm::Value *>();
+        // idx_list.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(GlobalLLVMContext::getGlobalContext()), 0));
+
+        // idx_list.push_back(index->code_gen(context));
+
+        // auto ref = llvm::GetElementPtrInst::CreateInBounds(arr, llvm::ArrayRef<llvm::Value *>(idx_list), "tempname", context.Builder.GetInsertBlock());
+
+        // return new llvm::LoadInst(ref, "", false, context.Builder.GetInsertBlock());
     }
 
     llvm::Value *ArrayAccess::GetPtr(CodeGenContext &context)
     {
-        return nullptr;
+        llvm::Value *value = context.getValue(name->name);
+        if (!value)
+        {
+            value = context.module->getGlobalVariable(name->name);
+        }
+        auto *idx_value = context.Builder.CreateIntCast(this->index->code_gen(context), context.Builder.getInt32Ty(), true);
+        auto *value_type = value->getType();
+        auto *ptr_type = value_type->getPointerElementType();
+        std::vector<llvm::Value *> idx;
+        if (ptr_type->isArrayTy())
+        {
+            idx.push_back(llvm::ConstantInt::getSigned(context.Builder.getInt32Ty(), 0));
+        }
+        else
+        {
+
+            value = context.Builder.CreateLoad(value);
+        }
+        idx.push_back(idx_value);
+
+        return context.Builder.CreateInBoundsGEP(value, idx);
     }
 
     llvm::Value *FuncCall::code_gen(CodeGenContext &context)
@@ -114,7 +145,7 @@ namespace ast
         //     for (auto &arg : *(this->arg_list))
         //     {
         //         auto *value = arg->code_gen(context);
-        //         auto arg_type = value->getType();
+        //         auto arg_type = value->getType(context);
         //         std::vector<llvm::Value *> func_args;
         //         if (arg_type->isIntegerTy())
         //         {
@@ -149,23 +180,24 @@ namespace ast
                 auto *value = arg->code_gen(context);
                 auto arg_type = value->getType();
                 std::vector<llvm::Value *> func_args;
-                if (arg_type->isIntegerTy()) // int/bool
+                if (arg_type->isIntegerTy(32) || arg_type->isIntegerTy(32)) // int/bool
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
                     func_args.push_back(value);
                 }
-                // else if (arg_type->isIntegerTy(8)) // char
-                // {
-                //     func_args.push_back(context.Builder.CreateGlobalStringPtr("%c"));
-                //     func_args.push_back(value);
-                // }
+                else if (arg_type->isIntegerTy(8)) // char
+                {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%c"));
+                    func_args.push_back(value);
+                }
                 else if (arg_type->isDoubleTy()) //real
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
                     func_args.push_back(value);
                 }
-                else if (arg_type->isArrayTy()) {
-                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s\n"));
+                else if (arg_type->isArrayTy())
+                {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
                     //func_args.push_back(value);
                     auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
                     auto *value2 = real_arg->GetPtr(context);
@@ -189,22 +221,23 @@ namespace ast
                 auto *value = arg->code_gen(context);
                 auto arg_type = value->getType();
                 std::vector<llvm::Value *> func_args;
-                if (arg_type->isIntegerTy()) // int/bool
+                if (arg_type->isIntegerTy(32) || arg_type->isIntegerTy(32)) // int/bool
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%d\n"));
                     func_args.push_back(value);
                 }
-                // else if (arg_type->isIntegerTy(8)) // char
-                // {
-                //     func_args.push_back(context.Builder.CreateGlobalStringPtr("%c\n"));
-                //     func_args.push_back(value);
-                // }
+                else if (arg_type->isIntegerTy(8)) // char
+                {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%c\n"));
+                    func_args.push_back(value);
+                }
                 else if (arg_type->isDoubleTy()) //real
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%f\n"));
                     func_args.push_back(value);
                 }
-                else if (arg_type->isArrayTy()) {
+                else if (arg_type->isArrayTy())
+                {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%s\n"));
                     //func_args.push_back(value);
                     auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
