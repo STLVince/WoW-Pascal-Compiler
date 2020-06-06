@@ -18,7 +18,7 @@ namespace ast
     public:
         std::shared_ptr<Identifier> lhs;
         std::shared_ptr<Expression> rhs;
-        std::shared_ptr<Expression> array_lhs;
+        std::shared_ptr<ArrayAccess> array_lhs;
 
         AssignmentStmt(std::shared_ptr<Identifier> lhs, std::shared_ptr<Expression> rhs) : lhs(lhs), rhs(rhs), array_lhs(nullptr) {}
         AssignmentStmt(std::shared_ptr<ArrayAccess> alhs, std::shared_ptr<Expression> rhs) : lhs(nullptr), rhs(rhs), array_lhs(alhs) {}
