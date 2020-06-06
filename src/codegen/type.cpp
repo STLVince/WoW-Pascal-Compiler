@@ -8,6 +8,8 @@ namespace ast
 
     llvm::Type *TypeDecl::getType(CodeGenContext &context)
     {
+        codegenOutput << "TypeDecl::getType" << std::endl;
+        
         std::shared_ptr<ArrayType> real_type;
         switch (this->type)
         {
@@ -27,7 +29,7 @@ namespace ast
             break;
         case TypeName::ARRAY:
             real_type = std::dynamic_pointer_cast<ArrayType>(std::shared_ptr<TypeDecl>(this));
-            return llvm::ArrayType::get(real_type->array_type->getType(context), real_type->end - real_type->start);
+            return llvm::ArrayType::get(real_type->array_type->getType(context), real_type->end + 1);
             break;
         // case TypeName::RECORD:
         // TODO
@@ -39,6 +41,8 @@ namespace ast
 
     llvm::Type *ConstType::getType(CodeGenContext &context)
     {
+        codegenOutput << "ConstType::getType" << std::endl;
+        
         switch (getConstType())
         {
         case TypeName::INTEGER:
@@ -131,44 +135,6 @@ namespace ast
         llvm::Constant *strVal = llvm::ConstantExpr::getGetElementPtr(string_type, GVStr, indices[0], true);
         codegenOutput << "StringType::code_gen: StringType done" << std::endl;
         return strVal;
-
-        //0. Defs
-        // auto str = this->val;
-        // auto charType = llvm::IntegerType::get(GlobalLLVMContext::getGlobalContext(), 8);
-
-        // //1. Initialize chars vector
-        // std::vector<llvm::Constant *> chars(str.length());
-        // for (unsigned int i = 0; i < str.size(); i++)
-        // {
-        //     chars[i] = llvm::ConstantInt::get(charType, str[i]);
-        // }
-
-        // //1b. add a zero terminator too
-        // chars.push_back(llvm::ConstantInt::get(charType, 0));
-
-        // //2. Initialize the string from the characters
-        // auto stringType = llvm::ArrayType::get(charType, chars.size());
-
-        // //3. Create the declaration statement
-        // auto globalDeclaration = (llvm::GlobalVariable *)context.module->getOrInsertGlobal(".str", stringType);
-        // globalDeclaration->setInitializer(llvm::ConstantArray::get(stringType, chars));
-        // globalDeclaration->setConstant(true);
-        // globalDeclaration->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
-        // globalDeclaration->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Global);
-        // // llvm::GlobalVariable * v = new llvm::GlobalVariable(context.module, stringType, true, llvm::GlobalVariable::ExternalLinkage, llvm::ConstantArray::get(stringType, chars));
-
-        // //4. Return a cast to an i8*
-        // return llvm::ConstantExpr::getBitCast(globalDeclaration, charType->getPointerTo());
-        // auto charType = llvm::IntegerType::get(GlobalLLVMContext::getGlobalContext(), 8);
-        // std::vector<llvm::Constant *> chars(val.size());
-        // for (unsigned int i = 0; i < val.size(); i++)
-        // {
-        //     chars[i] = llvm::ConstantInt::get(charType, val[i]);
-        // }
-        // chars.push_back(llvm::ConstantInt::get(charType, 0));
-        // auto init = llvm::ConstantArray::get(llvm::ArrayType::get(charType, chars.size()), chars);
-        // llvm::GlobalVariable *v = new llvm::GlobalVariable(*context.module, init->getType(), true, llvm::GlobalVariable::ExternalLinkage, init, val);
-        // return llvm::ConstantExpr::getBitCast(v, charType->getPointerTo());
     }
 
     llvm::Value *CharType::code_gen(CodeGenContext &context)

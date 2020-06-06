@@ -53,6 +53,8 @@ namespace ast
             llvm::Type *type = this->type->getType(context);
             llvm::Constant *constant;
 
+            codegenOutput << "VarDecl::code_gen: var is global" << std::endl;
+
             // TODO: new type support
             switch (this->type->type)
             {
@@ -71,6 +73,7 @@ namespace ast
                 break;
             case TypeName::ARRAY:
             {
+                codegenOutput << "VarDecl::code_gen: array type" << std::endl;
                 auto array_it = std::dynamic_pointer_cast<ArrayType>(this->type);
                 auto *array_type = array_it->array_type->getType(context);
                 //llvm::IntegerType* i32 = llvm::IntegerType::get(context.GetModule()->getContext(), 32);
@@ -112,10 +115,11 @@ namespace ast
                     InitVector.push_back(one);
                 }
                 auto *variable = llvm::ConstantArray::get(int_3, InitVector);
+                codegenOutput << "VarDecl::code_gen: array type done" << std::endl;
                 return new llvm::GlobalVariable(*context.module, variable->getType(), false, llvm::GlobalVariable::ExternalLinkage, variable, name->name);
             }
             default:
-                std::cerr << "unsupported type2" << std::endl;
+                std::cerr << "VarDecl::code_gen: unsupported type2" << std::endl;
             }
             codegenOutput << "VarDecl::code_gen: finish type ref" << std::endl;
             return new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, name->name);
