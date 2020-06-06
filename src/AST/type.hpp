@@ -44,10 +44,6 @@ namespace ast
         llvm::Value *code_gen(CodeGenContext &context);
     };
 
-    class RecordType : public TypeDecl
-    {
-    };
-
     class ConstType : public Expression
     {
     public:
@@ -108,7 +104,7 @@ namespace ast
     public:
         std::string val;
 
-        StringType(const std::string val) : val(val) 
+        StringType(const std::string val) : val(val)
         {
             this->val.erase(this->val.begin());
             this->val.pop_back();

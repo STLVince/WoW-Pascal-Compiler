@@ -159,10 +159,7 @@ namespace ast
         {
             std::cerr << "AssignmentStmt::code_gen: incompatible assignment type" << std::endl;
         }
-        // auto *lhs_type2 = lhs->getType()->getPointerElementType();
-        // codegenOutput << typeid(rhs->getType()).name() << std::endl;
-        // codegenOutput << typeid(lhs->getType()).name() << std::endl;
-        // assert(rhs->getType() == llvm::cast<llvm::PointerType>(lhs->getType())->getElementType());
+        
         codegenOutput << "AssignmentStmt::code_gen: before create store" << std::endl;
         context.Builder.CreateStore(rhs, lhs);
         codegenOutput << "AssignmentStmt::code_gen: after create store" << std::endl;
@@ -249,23 +246,23 @@ namespace ast
     {
         codegenOutput << "RepeatStmt::code_gen: inside RepeatStmt ast" << std::endl;
 
-        llvm::BasicBlock *loopStmtB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopStmt", context.currentFunction);
-        llvm::BasicBlock *loopEndB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopEnd", context.currentFunction);
-        llvm::BasicBlock *loopExitB = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "REPEATloopExit", context.currentFunction);
+        llvm::BasicBlock *loop_stat = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "RepeatStmt", context.currentFunction);
+        llvm::BasicBlock *loop_end = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "RepeatEnd", context.currentFunction);
+        llvm::BasicBlock *loop_exit = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "RepeatExit", context.currentFunction);
 
-        context.Builder.CreateBr(loopStmtB);
-        context.Builder.SetInsertPoint(loopStmtB);
+        context.Builder.CreateBr(loop_stat);
+        context.Builder.SetInsertPoint(loop_stat);
         for (auto stmt : *(loop_stmt->get_list()))
         {
             stmt->code_gen(context);
         }
-        context.Builder.CreateBr(loopEndB);
+        context.Builder.CreateBr(loop_end);
 
-        context.Builder.SetInsertPoint(loopEndB);
+        context.Builder.SetInsertPoint(loop_end);
         llvm::Value *test = this->condition->code_gen(context);
-        llvm::Value *ret = context.Builder.CreateCondBr(test, loopExitB, loopStmtB);
+        llvm::Value *ret = context.Builder.CreateCondBr(test, loop_exit, loop_stat);
 
-        context.Builder.SetInsertPoint(loopExitB);
+        context.Builder.SetInsertPoint(loop_exit);
 
         return ret;
     }

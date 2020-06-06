@@ -55,16 +55,6 @@ namespace ast
     {
         codegenOutput << "ArrayType::code_gen: creating array access for " << name->name << std::endl;
         return context.Builder.CreateLoad(GetPtr(context));
-        // auto arr = context.getValue(name->name);
-
-        // auto idx_list = std::vector<llvm::Value *>();
-        // idx_list.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(GlobalLLVMContext::getGlobalContext()), 0));
-
-        // idx_list.push_back(index->code_gen(context));
-
-        // auto ref = llvm::GetElementPtrInst::CreateInBounds(arr, llvm::ArrayRef<llvm::Value *>(idx_list), "tempname", context.Builder.GetInsertBlock());
-
-        // return new llvm::LoadInst(ref, "", false, context.Builder.GetInsertBlock());
     }
 
     llvm::Value *ArrayAccess::GetPtr(CodeGenContext &context)
@@ -139,7 +129,6 @@ namespace ast
     llvm::Value *SysFuncCall::code_gen(CodeGenContext &context)
     {
         codegenOutput << "SysFuncCall::code_gen: inside sysfunc" << std::endl;
-
         return nullptr;
     }
 
@@ -172,12 +161,9 @@ namespace ast
                 else if (arg_type->isArrayTy())
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
-                    //func_args.push_back(value);
                     auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
                     auto *value2 = real_arg->GetPtr(context);
                     func_args.push_back(value2);
-                    //std::string mystr2 = value2->getName().str();
-                    //func_args.push_back(context.GetBuilder().CreateGlobalStringPtr(mystr2));
                 }
                 else if (arg_type->isPointerTy())
                 {
@@ -186,7 +172,7 @@ namespace ast
                 }
                 else
                 {
-                    std::cerr << "incompatible type for sysfunc call" << std::endl;
+                    std::cerr << "SysProcCall::code_gen: incompatible type for sysfunc call" << std::endl;
                 }
                 context.Builder.CreateCall(context.printf, func_args);
             }
@@ -217,12 +203,9 @@ namespace ast
                 else if (arg_type->isArrayTy())
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%s\n"));
-                    //func_args.push_back(value);
                     auto real_arg = std::dynamic_pointer_cast<Identifier>(arg);
                     auto *value2 = real_arg->GetPtr(context);
                     func_args.push_back(value2);
-                    //std::string mystr2 = value2->getName().str();
-                    //func_args.push_back(context.GetBuilder().CreateGlobalStringPtr(mystr2));
                 }
                 else if (arg_type->isPointerTy())
                 {
@@ -231,7 +214,7 @@ namespace ast
                 }
                 else
                 {
-                    std::cerr << "incompatible type for sysfunc call" << std::endl;
+                    std::cerr << "SysProcCall::code_gen: incompatible type for sysfunc call" << std::endl;
                 }
                 context.Builder.CreateCall(context.printf, func_args);
             }

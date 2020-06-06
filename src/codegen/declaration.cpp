@@ -21,12 +21,6 @@ namespace ast
 
     llvm::Value *TypeDef::code_gen(CodeGenContext &context)
     {
-        codegenOutput << "TypeDef::code_gen: inside TypeDef ast" << std::endl;
-        auto success = context.setAlias(name->name, type->getType(context));
-        if (!success)
-        {
-            std::cerr << "duplicate type alias" << std::endl;
-        }
         return nullptr;
     }
 
@@ -51,13 +45,10 @@ namespace ast
         if (is_global)
         {
             codegenOutput << "VarDecl::code_gen: var is global" << std::endl;
-            
+
             llvm::Type *type = this->type->getType(context);
             llvm::Constant *constant;
 
-             codegenOutput << "VarDecl::code_gen: finish getType" << std::endl;
-
-            // TODO: new type support
             switch (this->type->type)
             {
             case TypeName::INTEGER:
@@ -70,7 +61,6 @@ namespace ast
                 break;
             case TypeName::STRING:
                 codegenOutput << "VarDecl::code_gen: string type" << std::endl;
-                // constant = llvm::ConstantArray::get(stringType, chars);
                 constant = llvm::ConstantDataArray::getString(GlobalLLVMContext::getGlobalContext(), "", true);
                 break;
             case TypeName::ARRAY:
@@ -78,8 +68,6 @@ namespace ast
                 codegenOutput << "VarDecl::code_gen: array type" << std::endl;
                 auto array_it = std::dynamic_pointer_cast<ArrayType>(this->type);
                 auto *array_type = array_it->array_type->getType(context);
-                //llvm::IntegerType* i32 = llvm::IntegerType::get(context.GetModule()->getContext(), 32);
-                llvm::Constant *constant;
                 if (array_type->isIntegerTy(32))
                 {
                     constant = llvm::ConstantInt::get(array_type, 0);

@@ -13,45 +13,45 @@
 CodeGenContext::CodeGenContext(bool optimize) : optimize(optimize), Builder(GlobalLLVMContext::getGlobalContext())
 {
     module = new llvm::Module("Pascal", GlobalLLVMContext::getGlobalContext());
+    printf = getPrintfPrototype();
 
     if (optimize)
     {
         fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module);
 
-    // createPromoteMemoryToRegister - Provide an entry point to create this pass.
-    fpm->add(llvm::createPromoteMemoryToRegisterPass());
+        // createPromoteMemoryToRegister - Provide an entry point to create this pass.
+        fpm->add(llvm::createPromoteMemoryToRegisterPass());
 
-    // Do simple "peephole" optimizations and bit-twiddling optzns.
-    fpm->add(llvm::createInstructionCombiningPass());
+        // Do simple "peephole" optimizations and bit-twiddling optzns.
+        fpm->add(llvm::createInstructionCombiningPass());
 
-    // Reassociate expressions.
-    fpm->add(llvm::createReassociatePass());
+        // Reassociate expressions.
+        fpm->add(llvm::createReassociatePass());
 
-    // Eliminate Common SubExpressions.
-    fpm->add(llvm::createGVNPass());
+        // Eliminate Common SubExpressions.
+        fpm->add(llvm::createGVNPass());
 
-    // Simplify the control flow graph (deleting unreachable blocks, etc).
-    fpm->add(llvm::createCFGSimplificationPass());
-    fpm->doInitialization();
+        // Simplify the control flow graph (deleting unreachable blocks, etc).
+        fpm->add(llvm::createCFGSimplificationPass());
+        fpm->doInitialization();
 
-    mpm = std::make_unique<llvm::legacy::PassManager>();
-    // createConstantMergePass - This function returns a new pass that merges
-    // duplicate global constants together into a single constant that is shared.
-    // This is useful because some passes (ie TraceValues) insert a lot of string
-    // constants into the program, regardless of whether or not they duplicate an
-    // existing string.
-    mpm->add(llvm::createConstantMergePass());
+        mpm = std::make_unique<llvm::legacy::PassManager>();
+        // createConstantMergePass - This function returns a new pass that merges
+        // duplicate global constants together into a single constant that is shared.
+        // This is useful because some passes (ie TraceValues) insert a lot of string
+        // constants into the program, regardless of whether or not they duplicate an
+        // existing string.
+        mpm->add(llvm::createConstantMergePass());
 
-    // createFunctionInliningPass - Return a new pass object that uses a heuristic
-    // to inline direct function calls to small functions.
-    mpm->add(llvm::createFunctionInliningPass());
+        // createFunctionInliningPass - Return a new pass object that uses a heuristic
+        // to inline direct function calls to small functions.
+        mpm->add(llvm::createFunctionInliningPass());
     }
     else
     {
         fpm = nullptr;
         mpm = nullptr;
     }
-    
 }
 
 llvm::Value *CodeGenContext::getValue(std::string name)
@@ -66,31 +66,12 @@ llvm::Value *CodeGenContext::getValue(std::string name)
     {
         if (module->getGlobalVariable(name) == NULL)
         {
-            std::cerr<< "Undeclared variable " << name << std::endl;
+            std::cerr << "Undeclared variable " << name << std::endl;
             return nullptr;
         }
         return module->getGlobalVariable(name);
     }
     return nowFunction->getValueSymbolTable()->lookup(name);
-}
-
-llvm::Type *CodeGenContext::getAlias(std::string key)
-{
-    auto V = aliases[key];
-    if (!V)
-    {
-        return nullptr;
-    }
-    return V;
-}
-bool CodeGenContext::setAlias(std::string key, llvm::Type *value)
-{
-    if (getAlias(key))
-    {
-        return false;
-    }
-    aliases[key] = value;
-    return true;
 }
 
 llvm::Function *CodeGenContext::getPrintfPrototype()
@@ -111,50 +92,35 @@ void CodeGenContext::generateCode(ast::Program &root)
 
     std::cout << "Generating code...\n";
 
-    // Create the top level interpreter function to call as entry
-    // std::vector<llvm::Type *> argTypes;
-    // llvm::FunctionType *ftype = llvm::FunctionType::get(llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext()), makeArrayRef(argTypes), false);
-
-    // mainFunction = llvm::Function::Create(ftype, llvm::GlobalValue::ExternalLinkage, "main", module);
-    // llvm::BasicBlock *basicBlock = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "entry", mainFunction, 0);
-
-    CodeGenContext::printf = getPrintfPrototype();
-
-    // // Push a new variable/block context
-    // Builder.SetInsertPoint(basicBlock);
-    // currentFunction = mainFunction;
+    // add label info
     for (auto label : labels)
     {
         labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
     };
 
+    // generate code for root
     root.code_gen(*this);
-    // Builder.SetInsertPoint(basicBlock);
-    // Builder.CreateRetVoid();
 
     // verify the main function
     llvm::verifyFunction(*mainFunction, &llvm::errs());
 
     // perform optimization
     if (optimize)
-    {    
+    {
         fpm->run(*mainFunction);
         mpm->run(*module);
     }
 
-    // Print the bytecode in a human-readable format
-    // to see if the program compiled properly
     llvm::legacy::PassManager pm;
     pm.add(llvm::createPrintModulePass(llvm::outs()));
     //pm.run(*module);
 
-    // write IR to stderr
-    // module->print(llvm::errs(), nullptr);
     std::cout << "Code is generated!" << std::endl;
 }
 
 void CodeGenContext::outputCode(std::string filename)
 {
+    // open destination file
     std::error_code ec;
     llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::F_None);
     if (ec)
@@ -163,6 +129,7 @@ void CodeGenContext::outputCode(std::string filename)
         exit(1);
     }
 
+    // resolve target
     int pos = filename.rfind('.');
     std::string ext = filename.substr(pos + 1);
     llvm::TargetMachine::CodeGenFileType type = llvm::TargetMachine::CGFT_Null; // not emit any output.
@@ -186,6 +153,7 @@ void CodeGenContext::outputCode(std::string filename)
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
 
+    // get target machine info
     auto target_triple = llvm::sys::getDefaultTargetTriple();
     module->setTargetTriple(target_triple);
 
@@ -204,6 +172,7 @@ void CodeGenContext::outputCode(std::string filename)
     auto target_machine = target->createTargetMachine(target_triple, cpu, features, opt, rm);
     module->setDataLayout(target_machine->createDataLayout());
 
+    // emit code
     llvm::legacy::PassManager pass;
     if (target_machine->addPassesToEmitFile(pass, dest, nullptr, type))
     {

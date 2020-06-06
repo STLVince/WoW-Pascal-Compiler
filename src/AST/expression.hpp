@@ -16,7 +16,7 @@ namespace ast
     public:
         std::shared_ptr<Identifier> name = nullptr;
         std::shared_ptr<Expression> index = nullptr;
-        ArrayAccess(std::string& ID, std::shared_ptr<Expression> &index) : name(make_node<Identifier>(ID)), index(index) {}
+        ArrayAccess(std::string &ID, std::shared_ptr<Expression> &index) : name(make_node<Identifier>(ID)), index(index) {}
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
         llvm::Value *GetPtr(CodeGenContext &context);
@@ -60,7 +60,6 @@ namespace ast
     public:
         SysProcCall(std::shared_ptr<Identifier> id) : ProcCall(id) {}
         SysProcCall(std::shared_ptr<Identifier> id, std::shared_ptr<ExpressionList> arg_list) : ProcCall(id, arg_list) {}
-        //llvm::Value *SysProc_write(CodeGenContext &context, bool writeln);
         void printSelf(std::string nodeName);
         llvm::Value *code_gen(CodeGenContext &context);
     };

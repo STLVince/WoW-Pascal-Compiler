@@ -150,32 +150,6 @@ namespace ast
 
         codegenOutput << "Routine::code_gen: start initializing arguments" << std::endl;
 
-        // initialize arguments
-        // auto index = 0;
-        // for (auto &arg : function->args())
-        // {
-        //     auto *type = arg.getType(context);
-        //     llvm::Constant *constant;
-        //     if (type->isIntegerTy(32))
-        //     {
-        //         constant = llvm::ConstantInt::get(type, 0);
-        //     }
-        //     else if (type->isDoubleTy())
-        //     {
-        //         constant = llvm::ConstantFP::get(type, 0.0);
-        //     }
-        //     else
-        //     {
-        //         std::cerr << "Routine::code_gen: unknown function argument type" << std::endl;
-        //     }
-        //     std::string prefix(name->name);
-        //     std::cout << prefix + "_" + arg_names[index++] << std::endl;
-        //     auto *variable = new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, prefix + "_" + arg_names[index++]);
-        //     context.Builder.CreateStore(&arg, variable);
-        //     //auto *local = context.GetBuilder().CreateAlloca(arg.getType());
-        //     //context.SetValue(names[index++], local);
-        //     //context.GetBuilder().CreateStore(&arg, local);
-        // }
         llvm::Value *parameter_value;
         auto parameter_iter = function->arg_begin();
         for (auto arg : *(arg_list))
@@ -187,16 +161,6 @@ namespace ast
             auto inst = new llvm::StoreInst(parameter_value, context.getValue(arg->name->name), false, block);
         }
         codegenOutput << "Routine::code_gen: argument initializing success!\n";
-
-        // allocate return variable
-        // if (this->isFunction())
-        // {
-        //     codegenOutput << "Routine::code_gen: creating function return value declaration" << std::endl;
-        //     // TODO check this
-        //     auto *alloc = context.Builder.CreateAlloca(this->type->getType(context));
-        //     // context.insert(this->routine_name->name) = alloc;
-        // }
-        // codegenOutput << "Routine::code_gen: function part success!\n";
 
         // const decl part
         for (auto const_decl : *(this->const_part))
@@ -215,30 +179,9 @@ namespace ast
 
         // set the return variable
         if (this->isFunction())
-        {
-            // auto *type = this->type->getType(context);
-            // llvm::Constant *constant;
-            // if (type->isIntegerTy(32))
-            // {
-            //     constant = llvm::ConstantInt::get(type, 0);
-            // }
-            // else if (type->isDoubleTy())
-            // {
-            //     constant = llvm::ConstantFP::get(type, 0.0);
-            // }
-            // else
-            // {
-            //     std::cerr << "Routine::code_gen: unknown function return type" << std::endl;
-            // }
-            // std::string prefix(name->name);
-            // // std::cout << prefix << std::endl;
-            // // context.GetTrace().push_back(prefix);
-            // auto *variable = new llvm::GlobalVariable(*context.module, type, false, llvm::GlobalVariable::ExternalLinkage, constant, prefix + "_" + name->name);
+        {            
             codegenOutput << "Routine::code_gen: generating code for return variable " << name->name << std::endl;
             context.Builder.CreateAlloca(type->getType(context), 0, name->name);
-
-            //auto *ret = context.GetBuilder().CreateAlloca(proghead->type->GetType(context));
-            //context.SetValue(proghead->name->GetName(), ret);
         }
 
         for (auto routine : *(this->routine_part))
@@ -247,9 +190,8 @@ namespace ast
             routine->code_gen(context);
         }
 
-        context.Builder.SetInsertPoint(block);
-
         // deal with program statements
+        context.Builder.SetInsertPoint(block);
         for (auto body : *(this->routine_body.get()->get_list()))
         {
             codegenOutput << "Routine::code_gen: generating code for body" << std::endl;
@@ -271,7 +213,6 @@ namespace ast
         }
 
         // restore current function and block
-        // context.Builder.SetInsertPoint(oldBlock);
         context.currentFunction = oldFunction;
 
         // verify the function

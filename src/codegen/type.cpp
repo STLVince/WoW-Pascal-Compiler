@@ -9,17 +9,17 @@ namespace ast
     llvm::Type *TypeDecl::getType(CodeGenContext &context)
     {
         codegenOutput << "TypeDecl::getType" << std::endl;
-        
+
         // deal with array type
-        if (auto* real_type = dynamic_cast<const ArrayType *>(this))
+        if (auto *real_type = dynamic_cast<const ArrayType *>(this))
         {
             codegenOutput << "TypeDecl::getType: array type" << std::endl;
             llvm::ArrayType *int_3 = llvm::ArrayType::get(real_type->array_type->getType(context), real_type->end + 1);
             std::vector<llvm::Constant *> InitVector;
-            llvm::Constant* variable = llvm::ConstantArray::get(int_3, InitVector);
+            llvm::Constant *variable = llvm::ConstantArray::get(int_3, InitVector);
             return variable->getType();
         }
-        
+
         codegenOutput << "TypeDecl::getType: before switch type" << std::endl;
         switch (this->type)
         {
@@ -37,7 +37,6 @@ namespace ast
         case TypeName::BOOLEAN:
             return context.Builder.getInt1Ty();
             break;
-        case TypeName::RECORD: // TODO
         default:
             return llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext());
             break;
@@ -47,7 +46,7 @@ namespace ast
     llvm::Type *ConstType::getType(CodeGenContext &context)
     {
         codegenOutput << "ConstType::getType" << std::endl;
-        
+
         switch (getConstType())
         {
         case TypeName::INTEGER:
@@ -61,7 +60,6 @@ namespace ast
         case TypeName::BOOLEAN:
             return context.Builder.getInt1Ty();
         case TypeName::ARRAY:
-        case TypeName::RECORD: // TODO
         default:
             std::cerr << "Unsupported type3" << std::endl;
         }
@@ -94,16 +92,6 @@ namespace ast
 
         return new llvm::GlobalVariable(*context.module, array_type->getType(context), false, llvm::GlobalValue::ExternalLinkage, arr_const);
     }
-
-    // llvm::Value *RecordType::code_gen(CodeGenContext &context)
-    // {
-
-    // }
-
-    // llvm::Value *ConstType::code_gen(CodeGenContext &context)
-    // {
-
-    // }
 
     llvm::Value *IntegerType::code_gen(CodeGenContext &context)
     {

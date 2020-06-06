@@ -58,8 +58,7 @@ public:
     llvm::Function *mainFunction;
     llvm::IRBuilder<> Builder;    
     llvm::Function *printf;
-    std::map<llvm::Function *, llvm::Function *> functionParent;    
-    std::map<std::string, llvm::Type *> aliases;
+    std::map<llvm::Function *, llvm::Function *> functionParent;
     std::vector<int> labels;
     llvm::BasicBlock* labelBlock[10000];
     bool optimize;
@@ -69,8 +68,6 @@ public:
     CodeGenContext(bool optimize);
     std::map<std::string, llvm::Value *> &locals();
     llvm::Value *getValue(std::string name);
-    llvm::Type *getAlias(std::string key);
-    bool setAlias(std::string key, llvm::Type *value);
     llvm::Function *getPrintfPrototype();
     
     void generateCode(ast::Program& root);
