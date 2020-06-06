@@ -68,7 +68,7 @@ namespace ast
         // const decl part
         for (auto const_decl : *(this->const_part))
         {
-            codegenOutput << "Program::code_gen: generating code for const_decl" << const_decl->name->name << std::endl;
+            codegenOutput << "Program::code_gen: generating code for const_decl " << const_decl->name->name << std::endl;
             last = const_decl->code_gen(context);
         }
 
@@ -201,7 +201,7 @@ namespace ast
         // const decl part
         for (auto const_decl : *(this->const_part))
         {
-            codegenOutput << "Routine::code_gen: generating code for const_decl" << const_decl->name->name << std::endl;
+            codegenOutput << "Routine::code_gen: generating code for const_decl " << const_decl->name->name << std::endl;
             const_decl->code_gen(context);
         }
 
