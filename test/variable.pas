@@ -11,9 +11,9 @@ var
 	s:string;
 	x : array [0..2] of integer;
 begin
-	r:=0.5;
+	r:=-0.5;
 	c:='0';
-	x[2] := 2;
+	x[2] := -2;
 	a := x[1];
 	if b = 1 then
 	begin
@@ -22,6 +22,7 @@ begin
 	else begin
 		a := 9;
 	end;
+	writeln(r);
 	writeln(x[2]);
 	writeln(x[0]);
 	// s:='aa';
