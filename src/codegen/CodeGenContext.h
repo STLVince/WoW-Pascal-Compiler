@@ -66,7 +66,6 @@ public:
     std::unique_ptr<llvm::legacy::PassManager> mpm;
 
     CodeGenContext(bool optimize);
-    std::map<std::string, llvm::Value *> &locals();
     llvm::Value *getValue(std::string name);
     llvm::Function *getPrintfPrototype();
     
