@@ -5,7 +5,10 @@ namespace ast
 {
     void AssignmentStmt::printSelf(std::string nodeName)
     {
-        astDot << nodeName << "->" << nodeName + "_" + lhs->name << std::endl;
+        if (lhs)
+            astDot << nodeName << "->" << nodeName + "_" + lhs->name << std::endl;
+        else if (array_lhs)
+            astDot << nodeName << "->" << nodeName + "_array_" + array_lhs->name->name << std::endl;
         std::string childName = nodeName + "_rhs";
         astDot << nodeName << "->" << childName << std::endl;
         rhs->printSelf(childName);
@@ -121,17 +124,17 @@ namespace ast
         codegenOutput << "AssignmentStmt::code_gen: inside assignment ast" << std::endl;
 
         llvm::Value *lhs;
-        auto id_cast = std::dynamic_pointer_cast<Identifier>(this->lhs);
-        if (id_cast)
+        //auto id_cast = std::dynamic_pointer_cast<Identifier>(this->lhs);
+        if (this->lhs)
         {
-            lhs = id_cast->GetPtr(context);
+            lhs = this->lhs->GetPtr(context);
         }
         else
         {
-            auto array_cast = std::dynamic_pointer_cast<ArrayAccess>(this->lhs);
-            if (array_cast)
+            //auto array_cast = std::dynamic_pointer_cast<ArrayAccess>(this->array_lhs);
+            if (this->array_lhs)
             {
-                lhs = array_cast->GetPtr(context);
+                lhs = this->array_lhs->GetPtr(context);
             }
             else
             {
