@@ -101,7 +101,7 @@ namespace ast
                 int number_value = 0;
                 if (llvm::ConstantInt *CI = llvm::dyn_cast<llvm::ConstantInt>(llvm::ConstantInt::get(array_type, array_it->end)))
                 {
-                    if (CI->getBitWidth() <= 32)
+                    if (CI->getBitWidth() <= 32) // integer type
                     {
                         number_value = CI->getSExtValue() + 1; // add 1 since the index starts from 0
                     }

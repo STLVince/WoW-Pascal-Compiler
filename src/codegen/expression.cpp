@@ -140,32 +140,6 @@ namespace ast
     {
         codegenOutput << "SysFuncCall::code_gen: inside sysfunc" << std::endl;
 
-        // if (id->name == "write" || id->name == "writeln")
-        // {
-        //     for (auto &arg : *(this->arg_list))
-        //     {
-        //         auto *value = arg->code_gen(context);
-        //         auto arg_type = value->getType(context);
-        //         std::vector<llvm::Value *> func_args;
-        //         if (arg_type->isIntegerTy())
-        //         {
-        //             func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
-        //             func_args.push_back(value);
-        //         }
-        //         else if (arg_type->isDoubleTy())
-        //         {
-        //             func_args.push_back(context.Builder.CreateGlobalStringPtr("%f"));
-        //             func_args.push_back(value);
-        //         }
-        //         // TODO: string support
-        //         else
-        //         {
-        //             std::cerr << "incompatible type for sysfunc call" << std::endl;
-        //         }
-        //         context.Builder.CreateCall(context.printf, func_args);
-        //     }
-        //     return nullptr;
-        // }
         return nullptr;
     }
 
@@ -180,7 +154,7 @@ namespace ast
                 auto *value = arg->code_gen(context);
                 auto arg_type = value->getType();
                 std::vector<llvm::Value *> func_args;
-                if (arg_type->isIntegerTy(32) || arg_type->isIntegerTy(32)) // int/bool
+                if (arg_type->isIntegerTy(32) || arg_type->isIntegerTy(1)) // int/bool
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%d"));
                     func_args.push_back(value);
@@ -205,7 +179,11 @@ namespace ast
                     //std::string mystr2 = value2->getName().str();
                     //func_args.push_back(context.GetBuilder().CreateGlobalStringPtr(mystr2));
                 }
-                // TODO: string support
+                else if (arg_type->isPointerTy())
+                {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s"));
+                    func_args.push_back(value);
+                }
                 else
                 {
                     std::cerr << "incompatible type for sysfunc call" << std::endl;
@@ -221,7 +199,7 @@ namespace ast
                 auto *value = arg->code_gen(context);
                 auto arg_type = value->getType();
                 std::vector<llvm::Value *> func_args;
-                if (arg_type->isIntegerTy(32) || arg_type->isIntegerTy(32)) // int/bool
+                if (arg_type->isIntegerTy(32) || arg_type->isIntegerTy(1)) // int/bool
                 {
                     func_args.push_back(context.Builder.CreateGlobalStringPtr("%d\n"));
                     func_args.push_back(value);
@@ -246,7 +224,11 @@ namespace ast
                     //std::string mystr2 = value2->getName().str();
                     //func_args.push_back(context.GetBuilder().CreateGlobalStringPtr(mystr2));
                 }
-                // TODO: string support
+                else if (arg_type->isPointerTy())
+                {
+                    func_args.push_back(context.Builder.CreateGlobalStringPtr("%s\n"));
+                    func_args.push_back(value);
+                }
                 else
                 {
                     std::cerr << "incompatible type for sysfunc call" << std::endl;

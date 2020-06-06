@@ -25,5 +25,6 @@ begin
 	writeln(x[2]);
 	writeln(x[0]);
 	// s:='aa';
+	writeln('aa');
 	writeln(teststr);
 end.

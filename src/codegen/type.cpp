@@ -10,14 +10,13 @@ namespace ast
     {
         codegenOutput << "TypeDecl::getType" << std::endl;
         
+        // deal with array type
         if (auto* real_type = dynamic_cast<const ArrayType *>(this))
         {
             codegenOutput << "TypeDecl::getType: array type" << std::endl;
             llvm::ArrayType *int_3 = llvm::ArrayType::get(real_type->array_type->getType(context), real_type->end + 1);
             std::vector<llvm::Constant *> InitVector;
-            codegenOutput << "TypeDecl::getType: here3" << std::endl;
             llvm::Constant* variable = llvm::ConstantArray::get(int_3, InitVector);
-            codegenOutput << "TypeDecl::getType: here4" << std::endl;
             return variable->getType();
         }
         
@@ -38,13 +37,7 @@ namespace ast
         case TypeName::BOOLEAN:
             return context.Builder.getInt1Ty();
             break;
-        // case TypeName::ARRAY:
-            // real_type = std::dynamic_pointer_cast<ArrayType>(std::shared_ptr<TypeDecl>(this));
-            // codegenOutput << "TypeDecl::getType: array type" << std::endl;
-            
-            // break;
-        // case TypeName::RECORD:
-        // TODO
+        case TypeName::RECORD: // TODO
         default:
             return llvm::Type::getVoidTy(GlobalLLVMContext::getGlobalContext());
             break;
@@ -67,10 +60,8 @@ namespace ast
             return llvm::ConstantDataArray::getString(GlobalLLVMContext::getGlobalContext(), "", true)->getType();
         case TypeName::BOOLEAN:
             return context.Builder.getInt1Ty();
-        // case TypeName::ARRAY:
-        // TODO
-        // case TypeName::RECORD:
-        // TODO
+        case TypeName::ARRAY:
+        case TypeName::RECORD: // TODO
         default:
             std::cerr << "Unsupported type3" << std::endl;
         }
