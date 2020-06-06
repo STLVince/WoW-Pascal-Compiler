@@ -62,10 +62,11 @@ public:
     std::map<std::string, llvm::Type *> aliases;
     std::vector<int> labels;
     llvm::BasicBlock* labelBlock[10000];
-    // std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
-    // std::unique_ptr<llvm::legacy::PassManager> mpm;
+    bool optimize;
+    std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
+    std::unique_ptr<llvm::legacy::PassManager> mpm;
 
-    CodeGenContext();
+    CodeGenContext(bool optimize);
     std::map<std::string, llvm::Value *> &locals();
     llvm::Value *getValue(std::string name);
     llvm::Type *getAlias(std::string key);

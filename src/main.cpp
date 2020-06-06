@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 {
     if (argc < 3)
     {
-        std::cout << "[Usage]: ./[elf] [source] [destination]" << std::endl;
+        std::cout << "[Usage]: ./[elf] [source] [destination] [-o]" << std::endl;
         return 0;
     }
 
@@ -27,7 +27,13 @@ int main(int argc, char **argv)
     ast::parser p;
     p.parse();
 
-    auto genContext = new CodeGenContext();
+    bool optimize;
+    if (argc > 3 && strcmp(argv[3], "-o") == 0)
+    {
+        optimize = true;
+    }
+
+    auto genContext = new CodeGenContext(optimize);
     astRoot->printSelf("main");
     genContext->generateCode(*(astRoot.get()));
     genContext->outputCode(argv[2]);

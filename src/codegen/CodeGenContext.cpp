@@ -10,38 +10,48 @@
 #include "CodeGenContext.h"
 #include "../AST/program.hpp"
 
-CodeGenContext::CodeGenContext() : Builder(GlobalLLVMContext::getGlobalContext())
+CodeGenContext::CodeGenContext(bool optimize) : optimize(optimize), Builder(GlobalLLVMContext::getGlobalContext())
 {
     module = new llvm::Module("Pascal", GlobalLLVMContext::getGlobalContext());
-    // fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module);
+
+    if (optimize)
+    {
+        fpm = std::make_unique<llvm::legacy::FunctionPassManager>(module);
 
     // createPromoteMemoryToRegister - Provide an entry point to create this pass.
-    // fpm->add(llvm::createPromoteMemoryToRegisterPass());
+    fpm->add(llvm::createPromoteMemoryToRegisterPass());
 
     // Do simple "peephole" optimizations and bit-twiddling optzns.
-    // fpm->add(llvm::createInstructionCombiningPass());
+    fpm->add(llvm::createInstructionCombiningPass());
 
     // Reassociate expressions.
-    // fpm->add(llvm::createReassociatePass());
+    fpm->add(llvm::createReassociatePass());
 
     // Eliminate Common SubExpressions.
-    // fpm->add(llvm::createGVNPass());
+    fpm->add(llvm::createGVNPass());
 
     // Simplify the control flow graph (deleting unreachable blocks, etc).
-    // fpm->add(llvm::createCFGSimplificationPass());
-    // fpm->doInitialization();
+    fpm->add(llvm::createCFGSimplificationPass());
+    fpm->doInitialization();
 
-    // mpm = std::make_unique<llvm::legacy::PassManager>();
+    mpm = std::make_unique<llvm::legacy::PassManager>();
     // createConstantMergePass - This function returns a new pass that merges
     // duplicate global constants together into a single constant that is shared.
     // This is useful because some passes (ie TraceValues) insert a lot of string
     // constants into the program, regardless of whether or not they duplicate an
     // existing string.
-    // mpm->add(llvm::createConstantMergePass());
+    mpm->add(llvm::createConstantMergePass());
 
     // createFunctionInliningPass - Return a new pass object that uses a heuristic
     // to inline direct function calls to small functions.
-    // mpm->add(llvm::createFunctionInliningPass());
+    mpm->add(llvm::createFunctionInliningPass());
+    }
+    else
+    {
+        fpm = nullptr;
+        mpm = nullptr;
+    }
+    
 }
 
 llvm::Value *CodeGenContext::getValue(std::string name)
@@ -126,8 +136,11 @@ void CodeGenContext::generateCode(ast::Program &root)
     llvm::verifyFunction(*mainFunction, &llvm::errs());
 
     // perform optimization
-    // fpm->run(*mainFunction);
-    // mpm->run(*module);
+    if (optimize)
+    {    
+        fpm->run(*mainFunction);
+        mpm->run(*module);
+    }
 
     // Print the bytecode in a human-readable format
     // to see if the program compiled properly

@@ -278,7 +278,10 @@ namespace ast
         llvm::verifyFunction(*function, &llvm::errs());
 
         // perform optimization
-        // context.fpm->run(*function);
+        if (context.optimize)
+        {
+            context.fpm->run(*function);
+        }
 
         return function;
     }
