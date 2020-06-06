@@ -50,10 +50,12 @@ namespace ast
 
         if (is_global)
         {
+            codegenOutput << "VarDecl::code_gen: var is global" << std::endl;
+            
             llvm::Type *type = this->type->getType(context);
             llvm::Constant *constant;
 
-            codegenOutput << "VarDecl::code_gen: var is global" << std::endl;
+             codegenOutput << "VarDecl::code_gen: finish getType" << std::endl;
 
             // TODO: new type support
             switch (this->type->type)

@@ -10,7 +10,18 @@ namespace ast
     {
         codegenOutput << "TypeDecl::getType" << std::endl;
         
-        std::shared_ptr<ArrayType> real_type;
+        if (auto* real_type = dynamic_cast<const ArrayType *>(this))
+        {
+            codegenOutput << "TypeDecl::getType: array type" << std::endl;
+            llvm::ArrayType *int_3 = llvm::ArrayType::get(real_type->array_type->getType(context), real_type->end + 1);
+            std::vector<llvm::Constant *> InitVector;
+            codegenOutput << "TypeDecl::getType: here3" << std::endl;
+            llvm::Constant* variable = llvm::ConstantArray::get(int_3, InitVector);
+            codegenOutput << "TypeDecl::getType: here4" << std::endl;
+            return variable->getType();
+        }
+        
+        codegenOutput << "TypeDecl::getType: before switch type" << std::endl;
         switch (this->type)
         {
         case TypeName::INTEGER:
@@ -27,10 +38,11 @@ namespace ast
         case TypeName::BOOLEAN:
             return context.Builder.getInt1Ty();
             break;
-        case TypeName::ARRAY:
-            real_type = std::dynamic_pointer_cast<ArrayType>(std::shared_ptr<TypeDecl>(this));
-            return llvm::ArrayType::get(real_type->array_type->getType(context), real_type->end + 1);
-            break;
+        // case TypeName::ARRAY:
+            // real_type = std::dynamic_pointer_cast<ArrayType>(std::shared_ptr<TypeDecl>(this));
+            // codegenOutput << "TypeDecl::getType: array type" << std::endl;
+            
+            // break;
         // case TypeName::RECORD:
         // TODO
         default:

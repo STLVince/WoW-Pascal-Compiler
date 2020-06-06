@@ -1,5 +1,6 @@
 program array1;
 var
+	r:real;
 	a:array[1..10] of integer;
 begin
 	a[1] := 1;
