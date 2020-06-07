@@ -8,8 +8,8 @@
 #include <list>
 #include <vector>
 #include <memory>
-#include "llvm/IR/Value.h"
-#include "llvm/IR/Instruction.h"
+#include <llvm/IR/Value.h>
+#include <llvm/IR/Instruction.h>
 
 class CodeGenContext;
 extern std::ofstream astDot;
