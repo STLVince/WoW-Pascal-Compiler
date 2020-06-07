@@ -78,16 +78,16 @@ namespace ast
                 }
                 else if (array_type->isDoubleTy())
                 {
-                    constant = llvm::ConstantFP::get(type, 0.0);
+                    constant = llvm::ConstantFP::get(array_type, 0.0);
                 }
                 else
                 {
                     std::cerr << "VarDecl::code_gen: element type for array not supported" << std::endl;
                 }
-                llvm::Constant *one = llvm::ConstantInt::get(array_type, 0);
+                // llvm::Constant *one = llvm::ConstantInt::get(array_type, 0);
 
                 int number_value = 0;
-                if (llvm::ConstantInt *CI = llvm::dyn_cast<llvm::ConstantInt>(llvm::ConstantInt::get(array_type, array_it->end)))
+                if (llvm::ConstantInt *CI = llvm::dyn_cast<llvm::ConstantInt>(llvm::ConstantInt::get(context.Builder.getInt32Ty(), array_it->end)))
                 {
                     if (CI->getBitWidth() <= 32) // integer type
                     {
@@ -102,7 +102,7 @@ namespace ast
                 std::vector<llvm::Constant *> InitVector;
                 for (int i = 0; i < number_value; i++)
                 {
-                    InitVector.push_back(one);
+                    InitVector.push_back(constant);
                 }
                 auto *variable = llvm::ConstantArray::get(int_3, InitVector);
                 codegenOutput << "VarDecl::code_gen: array type done" << std::endl;
