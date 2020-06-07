@@ -45,21 +45,37 @@ namespace ast
 
     void SysFuncCall::printSelf(std::string nodeName)
     {
-        for (auto arg : *(this->arg_list))
+        if (this->arg_list)
+        {
+            for (auto arg : *(this->arg_list))
+            {
+                std::string childName = nodeName + "_VarDecl";
+                astDot << nodeName << "->" << childName << std::endl;
+                arg->printSelf(childName);
+            }
+        }
+        else
         {
             std::string childName = nodeName + "_VarDecl";
             astDot << nodeName << "->" << childName << std::endl;
-            arg->printSelf(childName);
         }
     }
 
     void SysProcCall::printSelf(std::string nodeName)
     {
-        for (auto arg : *(this->arg_list))
+        if (this->arg_list)
+        {
+            for (auto arg : *(this->arg_list))
+            {
+                std::string childName = nodeName + "_VarDecl";
+                astDot << nodeName << "->" << childName << std::endl;
+                arg->printSelf(childName);
+            }
+        }
+        else
         {
             std::string childName = nodeName + "_VarDecl";
             astDot << nodeName << "->" << childName << std::endl;
-            arg->printSelf(childName);
         }
     }
 

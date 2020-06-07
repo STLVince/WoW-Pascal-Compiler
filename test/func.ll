@@ -4,6 +4,7 @@ source_filename = "Pascal"
 @a = global i32 0
 @0 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 @1 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+@2 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
 
 declare i32 @printf(i8*, ...)
 
@@ -15,7 +16,7 @@ entry:
   %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0), i32 %1)
   %3 = call i32 @max(i32 3)
   %4 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @1, i32 0, i32 0), i32 %3)
-  %5 = call i32 @wow()
+  %5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([2 x i8], [2 x i8]* @2, i32 0, i32 0))
   ret void
 }
 
