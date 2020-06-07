@@ -1,5 +1,5 @@
 	.text
-	.file	"main"
+	.file	"Pascal"
 	.globl	main
 	.p2align	4, 0x90
 	.type	main,@function
@@ -18,7 +18,6 @@ main:
 	cmpl	$10, i(%rip)
 	jle	.LBB0_2
 .LBB0_3:
-	xorl	%eax, %eax
 	retq
 .Lfunc_end0:
 	.size	main, .Lfunc_end0-main

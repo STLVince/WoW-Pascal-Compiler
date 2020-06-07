@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     p.parse();
     
     astRoot->printSelf("main");
-    system("dot -Tpng ../result/AST.dot -o ../result/AST.png");
+    system("dot -Tjpg ../result/AST.dot -o ../result/AST.jpg");
     std::cout << "Parsing success! AST tree is saved in ../result/AST.png" << std::endl;
 
     std::cout << "Code generation start..." << std::endl;    

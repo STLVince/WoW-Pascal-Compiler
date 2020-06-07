@@ -1,7 +1,6 @@
 program variable;
 const
     b = 1;
-    // c = 2.2;
     teststr = 'aaa';
 var
 	a,b:integer;
@@ -25,7 +24,6 @@ begin
 	writeln(r);
 	writeln(x[2]);
 	writeln(x[0]);
-	// s:='aa';
 	writeln('aa');
 	writeln(teststr);
 end.
