@@ -10,19 +10,20 @@ source_filename = "Pascal"
 @c = global i8 0
 @s = global [1 x i8] zeroinitializer
 @x = global [3 x i32] zeroinitializer
-@0 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+@0 = private unnamed_addr constant [4 x i8] c"%f\0A\00", align 1
 @1 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
-@2 = constant [3 x i8] c"aa\00"
-@3 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@2 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
+@3 = constant [3 x i8] c"aa\00"
 @4 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@5 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
 
 declare i32 @printf(i8*, ...)
 
 define void @main() {
 entry:
-  store double 5.000000e-01, double* @r
+  store double -5.000000e-01, double* @r
   store i8 48, i8* @c
-  store i32 2, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 2)
+  store i32 -2, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 2)
   %0 = load i32, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 1)
   store i32 %0, i32* @a
   %1 = load i32, i32* @b
@@ -38,12 +39,14 @@ else:                                             ; preds = %entry
   br label %end
 
 end:                                              ; preds = %else, %then
-  %3 = load i32, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 2)
-  %4 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0), i32 %3)
-  %5 = load i32, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 0)
+  %3 = load double, double* @r
+  %4 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0), double %3)
+  %5 = load i32, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 2)
   %6 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @1, i32 0, i32 0), i32 %5)
-  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @3, i32 0, i32 0), [3 x i8]* @2)
-  %8 = load [4 x i8], [4 x i8]* @teststr
-  %9 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @4, i32 0, i32 0), [4 x i8]* @teststr)
+  %7 = load i32, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 0)
+  %8 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @2, i32 0, i32 0), i32 %7)
+  %9 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @4, i32 0, i32 0), [3 x i8]* @3)
+  %10 = load [4 x i8], [4 x i8]* @teststr
+  %11 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @5, i32 0, i32 0), [4 x i8]* @teststr)
   ret void
 }
