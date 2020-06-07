@@ -128,18 +128,28 @@ namespace ast
 
         // look up the procedure name in the module
         auto *func = context.module->getFunction(id->name);
-
-        // check whether arguments match
-        if (func->arg_size() != (*arg_list).size())
-        {
-            std::cerr << "ProcCall::code_gen: number of arguments not match for procedure " + id->name << std::endl;
-        }
-
-        // build argument
         std::vector<llvm::Value *> values;
-        for (auto &arg : (*arg_list))
+        if (this->arg_list)
         {
-            values.push_back(arg->code_gen(context));
+            // check whether arguments match
+            if (func->arg_size() != (*arg_list).size())
+            {
+                std::cerr << "ProcCall::code_gen: number of arguments not match for procedure " + id->name << std::endl;
+            }
+
+            // build argument
+            for (auto &arg : (*arg_list))
+            {
+                values.push_back(arg->code_gen(context));
+            }
+        }
+        else
+        {
+            // check whether arguments match
+            if (func->arg_size() != 0)
+            {
+                std::cerr << "ProcCall::code_gen: number of arguments not match for procedure " + id->name << std::endl;
+            }
         }
         return context.Builder.CreateCall(func, values);
     }
