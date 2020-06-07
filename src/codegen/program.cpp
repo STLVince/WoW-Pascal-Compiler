@@ -41,7 +41,10 @@ namespace ast
 
     void Routine::printSelf(std::string nodeName)
     {
-        astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << std::endl;
+        if(this->isFunction())
+            astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << std::endl;
+        else
+            astDot << nodeName << "->" << nodeName + "_TypeDecl_None"<< std::endl;
         for (auto arg : *(this->arg_list))
         {
             std::string childName = nodeName + "_VarDecl_" + arg->name->name;

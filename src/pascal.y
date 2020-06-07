@@ -37,7 +37,7 @@
 %type <ast::TypeName> SYS_TYPE
 
 %type <std::shared_ptr<ast::Expression>>       expression expr term factor
-%type <std::shared_ptr<ast::Statement>>        proc_stmt stmt non_label_stmt else_clause for_stmt repeat_stmt while_stmt if_stmt goto_stmt case_stmt
+%type <std::shared_ptr<ast::Statement>>        proc_stmt stmt non_label_stmt for_stmt repeat_stmt while_stmt if_stmt goto_stmt case_stmt
 %type <std::shared_ptr<ast::Program>>          program program_head routine_head routine sub_routine
 %type <std::shared_ptr<ast::Routine>>          function_decl function_head procedure_head procedure_decl
 %type <std::shared_ptr<ast::TypeDecl>>         type_decl record_type_decl simple_type_decl
@@ -266,16 +266,18 @@ proc_stmt: ID                           { $$ = ast::make_node<ast::ProcCall>(ast
     | SYS_PROC LP expression_list RP    { $$ = ast::make_node<ast::SysProcCall>(ast::make_node<ast::Identifier>($1), $3); }
     | READ LP factor RP {};
 
-if_stmt: IF expression THEN stmt else_clause {
+if_stmt: IF expression THEN stmt ELSE stmt {
         auto temp_then = ast::make_node<ast::StatementList>();
         temp_then->get_list()->push_back($4);
         auto temp_else = ast::make_node<ast::StatementList>();
-        temp_else->get_list()->push_back($5);
+        temp_else->get_list()->push_back($6);
         $$ = ast::make_node<ast::IfStmt>($2, temp_then, temp_else);
+    }
+    | IF expression THEN stmt {
+        auto temp_then = ast::make_node<ast::StatementList>();
+        temp_then->get_list()->push_back($4);
+        $$ = ast::make_node<ast::IfStmt>($2, temp_then);
     };
-
-else_clause: ELSE stmt { $$ = $2; }
-    |   { $$ = nullptr; };
 
 repeat_stmt: REPEAT stmt_list UNTIL expression {
         $$ = ast::make_node<ast::RepeatStmt>($4, $2);
@@ -303,6 +305,7 @@ case_stmt: CASE expression OF case_expr_list END {
     };
 
 case_expr_list: case_expr_list case_expr {
+        $$ = $1;
         $$ -> push_back($2);
     }
     | case_expr {

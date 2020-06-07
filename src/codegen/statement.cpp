@@ -27,11 +27,14 @@ namespace ast
             astDot << nodeName << "->" << childName << std::endl;
             (*(then_stmt.get()->get_list()))[i].get()->printSelf(childName);
         }
-        for (unsigned int i = 0; i < else_stmt.get()->get_list()->size(); i++)
+        if(this->else_stmt)
         {
-            std::string childName = nodeName + "_else" + std::to_string(i);
-            astDot << nodeName << "->" << childName << std::endl;
-            (*(else_stmt.get()->get_list()))[i].get()->printSelf(childName);
+            for (unsigned int i = 0; i < else_stmt.get()->get_list()->size(); i++)
+            {
+                std::string childName = nodeName + "_else" + std::to_string(i);
+                astDot << nodeName << "->" << childName << std::endl;
+                (*(else_stmt.get()->get_list()))[i].get()->printSelf(childName);
+            }
         }
     }
 
