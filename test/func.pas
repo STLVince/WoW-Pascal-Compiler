@@ -13,9 +13,5 @@ begin
 	a:=max(1);
 	writeln(a);
 	writeln(max(3));
-	// wow();
-	// writeln(wow());
-	// write();
-	// writeln();
 	writeln;
 end.

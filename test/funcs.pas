@@ -4,10 +4,10 @@ var
 function f(a:integer):integer;
 	function g(b:integer):integer;
 	begin
-		g:=b*3;
+		g:=b * 3;
 	end;
 begin
-	f:=g(a)+2;
+	f:=g(a) + 2;
 end;
 begin
 	a:=f(4);
