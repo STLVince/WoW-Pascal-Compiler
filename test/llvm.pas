@@ -22,10 +22,10 @@ begin
         if ( a < 120) then writeln(a);
     a := 1;
     writeln(a);
-    //case a of 
-    //    1: writeln(1);
-    //    100: begin goto 1;writeln(9999);end;
-   // end;
-//1:  
+    case a of 
+        1: writeln(1);
+        100: begin goto 1;writeln(9999);end;
+    end;
+1:  
     writeln(b*3 mod 600);
 end.

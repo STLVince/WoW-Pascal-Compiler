@@ -239,7 +239,7 @@ stmt_list: stmt_list  stmt  SEMI {
     |   { $$ = ast::make_node<ast::StatementList>(); };
 
 stmt: INTEGER COLON non_label_stmt {
-        //CodeGenContext::labels.push_back($1);
+        CodeGenContext::labels.push_back($1);
         $$ = ast::make_node<ast::LabelStmt>($1, $3);
     }
     |   non_label_stmt { $$ = $1; };
