@@ -84,7 +84,6 @@ namespace ast
                 {
                     std::cerr << "VarDecl::code_gen: element type for array not supported" << std::endl;
                 }
-                // llvm::Constant *one = llvm::ConstantInt::get(array_type, 0);
 
                 int number_value = 0;
                 if (llvm::ConstantInt *CI = llvm::dyn_cast<llvm::ConstantInt>(llvm::ConstantInt::get(context.Builder.getInt32Ty(), array_it->end)))

@@ -89,9 +89,6 @@ llvm::Function *CodeGenContext::getPrintfPrototype()
 
 void CodeGenContext::generateCode(ast::Program &root)
 {
-
-    std::cout << "Generating code...\n";
-
     // add label info
     for (auto label : labels)
     {
@@ -114,8 +111,6 @@ void CodeGenContext::generateCode(ast::Program &root)
     llvm::legacy::PassManager pm;
     pm.add(llvm::createPrintModulePass(llvm::outs()));
     //pm.run(*module);
-
-    std::cout << "Code is generated!" << std::endl;
 }
 
 void CodeGenContext::outputCode(std::string filename)
