@@ -9,7 +9,6 @@ source_filename = "Pascal"
 @2 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 @3 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 @4 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
-@5 = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 
 declare i32 @printf(i8*, ...)
 
@@ -17,6 +16,10 @@ define void @main() {
 entry:
   store i32 1, i32* @a
   br label %while
+
+label:                                            ; preds = %exit, %caseStmt8
+  store i32 1, i32* @a
+  ret void
 
 while:                                            ; preds = %loop, %entry
   %0 = load i32, i32* @a
@@ -102,25 +105,24 @@ end7:                                             ; preds = %else6, %end5
   %31 = icmp eq i32 %30, 1
   br i1 %31, label %caseStmt, label %next
 
-exit:                                             ; preds = %next
-  %32 = load i32, i32* @b
-  %33 = mul i32 %32, 3
-  %34 = srem i32 %33, 600
-  %35 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @5, i32 0, i32 0), i32 %34)
-  ret void
+exit:                                             ; preds = %afterGoto, %caseStmt, %next
+  br label %label
 
-caseStmt:                                         ; preds = %next, %end7
+caseStmt:                                         ; preds = %end7
+  %32 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @3, i32 0, i32 0), i32 1)
+  br label %exit
 
-caseStmt8:                                        ; preds = %next, %next
+caseStmt8:                                        ; preds = %next
+  br label %label
 
 next:                                             ; preds = %end7
-  %36 = load i32, i32* @a
-  %37 = icmp eq i32 %36, 100
-  br i1 %37, label %caseStmt8, label %exit
-  %38 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @3, i32 0, i32 0), i32 1)
-  br label %caseStmt
-  %39 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @4, i32 0, i32 0), i32 9999)
-  br label %caseStmt8
+  %33 = load i32, i32* @a
+  %34 = icmp eq i32 %33, 100
+  br i1 %34, label %caseStmt8, label %exit
+
+afterGoto:                                        ; No predecessors!
+  %35 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @4, i32 0, i32 0), i32 9999)
+  br label %exit
 }
 
 define void @count(i32 %b1) {

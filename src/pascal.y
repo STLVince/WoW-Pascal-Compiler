@@ -13,11 +13,13 @@
     #include <stdexcept>
     #include <unordered_map>
     #include "utils/ast.hpp"
+    #include "codegen/CodeGenContext.h"
 }
 
 %code {
     int yylex(ast::parser::semantic_type* yylval);
     std::shared_ptr<ast::Program> astRoot;
+    extern CodeGenContext* genContext;
 }
 
 %token PROGRAM ID SEMI DOT ASSIGN LP RP LB RB COMMA COLON
@@ -239,7 +241,7 @@ stmt_list: stmt_list  stmt  SEMI {
     |   { $$ = ast::make_node<ast::StatementList>(); };
 
 stmt: INTEGER COLON non_label_stmt {
-        CodeGenContext::labels.push_back($1);
+        genContext->labels.push_back($1);
         $$ = ast::make_node<ast::LabelStmt>($1, $3);
     }
     |   non_label_stmt { $$ = $1; };

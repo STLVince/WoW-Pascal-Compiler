@@ -360,7 +360,7 @@ namespace ast
         // both operands are boolean
         else if (op1->getType()->isIntegerTy(1) && op2->getType()->isIntegerTy(1))
         {
-            codegenOutput << "BinaryOp::code_gen: either op1 and op2 are both boolean" << std::endl;
+            codegenOutput << "BinaryOp::code_gen: both op1 and op2 are both boolean" << std::endl;
 
             // get compare operator
             auto it = BTypeAlt.find(op);
@@ -391,7 +391,7 @@ namespace ast
         // both operands are interger
         else if (op1->getType()->isIntegerTy(32) && op2->getType()->isIntegerTy(32))
         {
-            codegenOutput << "BinaryOp::code_gen: either op1 and op2 are both integer" << std::endl;
+            codegenOutput << "BinaryOp::code_gen: both op1 and op2 are both integer" << std::endl;
 
             // get compare operator
             auto it = BTypeAlt.find(op);
@@ -440,6 +440,7 @@ namespace ast
             }
             return context.Builder.CreateBinOp(binop, op1, op2);
         }
+        codegenOutput << "BinaryOp::code_gen: done generating" << std::endl;
         return nullptr;
     }
 } // namespace ast

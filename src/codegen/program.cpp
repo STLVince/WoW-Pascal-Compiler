@@ -71,6 +71,11 @@ namespace ast
         context.currentFunction = context.mainFunction;
 
         llvm::Value *last = nullptr;
+        // add label info
+        for (auto label : context.labels)
+        {
+            context.labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", context.mainFunction, 0);
+        };
 
         // const decl part
         for (auto const_decl : *(this->const_part))

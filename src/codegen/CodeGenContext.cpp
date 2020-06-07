@@ -88,13 +88,7 @@ llvm::Function *CodeGenContext::getPrintfPrototype()
 }
 
 void CodeGenContext::generateCode(ast::Program &root)
-{
-    // add label info
-    for (auto label : labels)
-    {
-        labelBlock[label] = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
-    };
-
+{   
     // generate code for root
     root.code_gen(*this);
 

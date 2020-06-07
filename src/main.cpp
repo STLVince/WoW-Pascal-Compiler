@@ -7,6 +7,7 @@
 
 extern FILE *yyin;
 extern std::shared_ptr<ast::Program> astRoot;
+CodeGenContext* genContext;
 std::ofstream astDot("../result/AST.dot");
 std::ofstream codegenOutput("../result/codegen");
 
@@ -18,6 +19,13 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    bool optimize;
+    if (argc > 3 && strcmp(argv[3], "-o") == 0)
+    {
+        optimize = true;
+    }
+    genContext = new CodeGenContext(optimize);
+
     std::cout << "Parsing start..." << std::endl;
     FILE *fp;
     if ((fp = fopen(argv[1], "r")) == 0)
@@ -25,16 +33,10 @@ int main(int argc, char **argv)
         std::cerr << "Cannot open file" << argv[1] << std::endl;
         exit(0);
     }
-    yyin = fp;
+    yyin = fp;    
     ast::parser p;
     p.parse();
-
-    bool optimize;
-    if (argc > 3 && strcmp(argv[3], "-o") == 0)
-    {
-        optimize = true;
-    }
-    auto genContext = new CodeGenContext(optimize);
+    
     astRoot->printSelf("main");
     system("dot -Tpng ../result/AST.dot -o ../result/AST.png");
     std::cout << "Parsing success! AST tree is saved in ../result/AST.png" << std::endl;

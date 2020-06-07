@@ -111,7 +111,7 @@ namespace ast
 
     void LabelStmt::printSelf(std::string nodeName)
     {
-        std::string stmtName = nodeName + "_statement";
+        std::string stmtName = nodeName + "_labelstatement";
         astDot << nodeName << "->" << stmtName << std::endl;
         statement->printSelf(stmtName);
     }
@@ -312,6 +312,7 @@ namespace ast
         {
             ret = stmt->code_gen(context);
         }
+        context.Builder.CreateBr(bexit);
         return ret;
     }
 
@@ -339,13 +340,14 @@ namespace ast
 
         auto cond = new BinaryOp(expression, OpType::EQ, (*list)[basic_blocks.size() - 1]->condition);
         auto ret = context.Builder.CreateCondBr(cond->code_gen(context), basic_blocks[basic_blocks.size() - 1], bexit);
+        
         // code gen for each case body
         for (unsigned int i = 0; i < basic_blocks.size(); i++)
         {
+            context.Builder.SetInsertPoint(basic_blocks[i]);
             auto cst = (*list)[i];
             cst->bexit = bexit;
             cst->code_gen(context);
-            context.Builder.CreateBr(basic_blocks[i]);
         }
 
         context.Builder.SetInsertPoint(bexit);
@@ -364,7 +366,7 @@ namespace ast
     llvm::Value *GotoStmt::code_gen(CodeGenContext &context)
     {
         codegenOutput << "GotoStmt::code_gen: inside GotoStmt ast" << std::endl;
-        llvm::Value *test = (new BooleanType("true"))->code_gen(context);
+        llvm::Value *test = (new BooleanType(true))->code_gen(context);
         llvm::BasicBlock *bafter = llvm::BasicBlock::Create(GlobalLLVMContext::getGlobalContext(), "afterGoto", context.currentFunction);
         auto ret = context.Builder.CreateBr(context.labelBlock[label]);
         context.Builder.SetInsertPoint(bafter);
