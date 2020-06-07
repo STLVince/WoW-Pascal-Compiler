@@ -9,11 +9,19 @@ namespace ast
 
     void FuncCall::printSelf(std::string nodeName)
     {
-        for (auto arg : *(this->arg_list))
+        if(this->arg_list)
+        {
+            for (auto arg : *(this->arg_list))
+            {
+                std::string childName = nodeName + "_VarDecl";
+                astDot << nodeName << "->" << childName << std::endl;
+                arg->printSelf(childName);
+            }
+        }
+        else
         {
             std::string childName = nodeName + "_VarDecl";
             astDot << nodeName << "->" << childName << std::endl;
-            arg->printSelf(childName);
         }
     }
 
@@ -88,18 +96,28 @@ namespace ast
 
         // look up the function name in the module
         auto *func = context.module->getFunction(id->name);
-
-        // check whether arguments match
-        if (func->arg_size() != (*arg_list).size())
-        {
-            std::cerr << "FuncCall::code_gen: number of arguments not match for function " + id->name << std::endl;
-        }
-
-        // build argument
         std::vector<llvm::Value *> values;
-        for (auto &arg : (*arg_list))
+        if(this->arg_list)
         {
-            values.push_back(arg->code_gen(context));
+            // check whether arguments match
+            if (func->arg_size() != (*arg_list).size())
+            {
+                std::cerr << "FuncCall::code_gen: number of arguments not match for function " + id->name << std::endl;
+            }
+
+            // build argument
+            for (auto &arg : (*arg_list))
+            {
+                values.push_back(arg->code_gen(context));
+            }
+        }
+        else
+        {
+            // check whether arguments match
+            if (func->arg_size() != 0)
+            {
+                std::cerr << "FuncCall::code_gen: number of arguments not match for function " + id->name << std::endl;
+            }
         }
         return context.Builder.CreateCall(func, values);
     }

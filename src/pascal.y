@@ -356,6 +356,7 @@ term:
 
 factor:
     ID                                  { $$ = ast::make_node<ast::Identifier>($1); }
+    | ID LP RP                          { $$ = ast::make_node<ast::FuncCall>(ast::make_node<ast::Identifier>($1)); }
     | ID LP expression_list RP          { $$ = ast::make_node<ast::FuncCall>(ast::make_node<ast::Identifier>($1), $3); }
     | SYS_FUNCT                         { $$ = ast::make_node<ast::SysFuncCall>(ast::make_node<ast::Identifier>($1)); }
     | SYS_FUNCT LP expression_list RP   { $$ = ast::make_node<ast::SysFuncCall>(ast::make_node<ast::Identifier>($1), $3); }
