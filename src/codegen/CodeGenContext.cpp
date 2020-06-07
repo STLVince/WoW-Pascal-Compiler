@@ -141,6 +141,11 @@ void CodeGenContext::outputCode(std::string filename)
     {
         type = llvm::TargetMachine::CGFT_ObjectFile;
     }
+    else
+    {
+        std::cerr << "Unsupported output file type." << std::endl;
+        return;
+    }
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
