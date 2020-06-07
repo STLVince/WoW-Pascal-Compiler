@@ -41,10 +41,14 @@ namespace ast
 
     void Routine::printSelf(std::string nodeName)
     {
-        if(this->isFunction())
+        if (this->isFunction())
+        {
             astDot << nodeName << "->" << nodeName + "_TypeDecl_" << static_cast<std::underlying_type<TypeName>::type>(type->type) << std::endl;
+        }
         else
-            astDot << nodeName << "->" << nodeName + "_TypeDecl_None"<< std::endl;
+        {
+            astDot << nodeName << "->" << nodeName + "_TypeDecl_None" << std::endl;
+        }
         for (auto arg : *(this->arg_list))
         {
             std::string childName = nodeName + "_VarDecl_" + arg->name->name;
@@ -182,7 +186,7 @@ namespace ast
 
         // set the return variable
         if (this->isFunction())
-        {            
+        {
             codegenOutput << "Routine::code_gen: generating code for return variable " << name->name << std::endl;
             context.Builder.CreateAlloca(type->getType(context), 0, name->name);
         }
